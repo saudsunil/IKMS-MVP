@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block title %}Homepage{% endblock %}
+{% block content %}
+
+<!-- Filter Buttons -->
+<div class="filter-buttons">
+    <button class="filter-btn active" data-type="All">All</button>
+    <button class="filter-btn" data-type="General">General</button>
+    <button class="filter-btn" data-type="Samrika">Samrika</button>
+    <button class="filter-btn" data-type="Employee Experience">Employee Experience</button>
+</div>
+
+<!-- Articles Container -->
+<div class="articles-container">
+    {% for article in articles %}
+    <div class="article-card" data-article-id="{{ article.id }}" data-type="{{ article.get_category_display }}">
+        <!-- Article Type (Top) -->
+        <div class="article-type">{{ article.get_category_display }}</div>
+
+        <!-- Article Header: Author + Delete -->
+        <div class="article-header">
+            <div class="author-info">
+                {% if article.author.profile_image %}
+                    <img src="{{ article.author.profile_image.url }}" class="author-img">
+                {% else %}
+                    <div class="author-placeholder">👤</div>
+                {% endif %}
+                <div class="author-details">
+                    <strong>{{ article.author.name }}</strong>
+                    <small>{{ article.created_at|date:"F j, Y, g:i a" }}</small>
+                </div>
+            </div>
+
+            {% if user.id == article.author.id %}
+            <div class="delete-btn" title="Delete Article">&times;</div>
+            {% endif %}
+        </div>
+
+        <hr style="margin: -5px 0;">
+
+        <!-- Title -->
+        <h4 class="article-title">Title: {{ article.title }}</h4>
+        <hr style="margin: -5px 0;">
+
+        <!-- Article Content -->
+        <div class="article-preview">
+            <div class="article-text" id="text-{{ article.id }}">
+                {{ article.content|linebreaks }}
+            </div>
+            <div class="see-more" id="btn-{{ article.id }}" onclick="toggleSeeMore({{ article.id }})">
+                See more
+            </div>
+        </div>
+
+        <!-- Cover Image -->
+        {% if article.cover_image %}
+        <div class="cover-image-wrapper">
+            <img src="{{ article.cover_image.url }}" class="cover-image">
+        </div>
+        {% endif %}
+
+        <!-- Include Comment Form & Comment List -->
+        {% include "comment/addcomment.html" with article=article %}
+        
+    </div>
+    {% endfor %}
+</div>
+
+<!-- CSS (unchanged from your original article layout) -->
+<style>
+/* Filter Buttons */
+.filter-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    max-width: 700px;
+    margin: 0 auto 20px auto;
+}
+.filter-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background-color: #0d6efd;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.filter-btn:hover { background-color: #0b5ed7; }
+.filter-btn.active {
+    background-color: #0b5ed7;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Articles Container */
+.articles-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Article Card */
+.article-card {
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Article Header */
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 20px 10px 15px;
+}
+.author-info {
+    display: flex;
+    align-items: center;
+}
+.author-img, .author-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    margin-right: 10px;
+    object-fit: cover;
+}
+.author-details { display: flex; flex-direction: column; font-size: 14px; }
+
+/* Delete Button */
+.delete-btn {
+    font-size: 26px;
+    cursor: pointer;
+    color: #dc3545;
+    font-weight: bold;
+}
+.delete-btn:hover { color: #a71d2a; }
+
+/* Title */
+.article-title {
+    text-align: center;
+    margin: 10px 0;
+    font-weight: 500;
+    font-size: 20px;
+}
+
+/* Cover Image */
+.cover-image-wrapper { width: 100%; }
+.cover-image { width: 100%; height: auto; display: block; }
+
+/* Article Type */
+.article-type {
+    text-align: center;
+    font-size: 22px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+/* Content */
+.article-preview {
+    position: relative;
+    margin-bottom: 5px;
+    margin-top:15px;
+    margin-left:15px;
+}
+
+.article-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 1; /* show only 1 line initially */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-wrap: break-word;
+}
+.article-text.measure {
+    -webkit-line-clamp: unset !important;
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+}
+.article-text.expanded {
+    -webkit-line-clamp: unset !important;
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* See More */
+.see-more {
+    color: #0a0a0aff;
+    margin-top: -2px;
+    font-size: 14px;
+    cursor: pointer;
+    display: none;
+    font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .article-card { padding: 0; }
+    .article-content { padding: 0 15px 15px 15px; }
+}
+</style>
+
+<!-- JS -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const csrftoken = getCookie('csrftoken');
+
+    function getCookie(name){
+        let cookieValue=null;
+        if(document.cookie && document.cookie!==''){
+            document.cookie.split(';').forEach(cookie=>{
+                cookie=cookie.trim();
+                if(cookie.startsWith(name+'=')){
+                    cookieValue=decodeURIComponent(cookie.substring(name.length+1));
+                }
+            });
+        }
+        return cookieValue;
+    }
+
+    // Filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const articles = document.querySelectorAll('.article-card');
+    let noArticlesMsg = document.createElement('div');
+    noArticlesMsg.id = 'no-articles-msg';
+    noArticlesMsg.style.textAlign = 'center';
+    noArticlesMsg.style.fontSize = '16px';
+    noArticlesMsg.style.color = '#6c757d';
+    noArticlesMsg.style.margin = '20px 0';
+    noArticlesMsg.textContent = 'No articles published yet.';
+    document.querySelector('.articles-container').appendChild(noArticlesMsg);
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.type;
+            let visibleCount = 0;
+            articles.forEach(article => {
+                if (type === 'All' || article.dataset.type === type) {
+                    article.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+            noArticlesMsg.style.display = visibleCount ? 'none' : 'block';
+            filterButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+    // Delete article
+    document.querySelectorAll('.delete-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const card = btn.closest('.article-card');
+            const articleId = card.dataset.articleId;
+            if(confirm('Are you sure you want to delete this article?')){
+                fetch(`/articles/delete/${articleId}/`,{
+                    method:'DELETE',
+                    headers:{'X-CSRFToken': csrftoken,'X-Requested-With':'XMLHttpRequest'}
+                })
+                .then(res=>res.json())
+                .then(data=>{ if(data.success){ card.remove(); alert('Article deleted successfully'); } else alert('Error deleting article'); })
+                .catch(err=>console.error(err));
+            }
+        });
+    });
+
+    // See more logic
+    document.querySelectorAll('.article-preview').forEach(preview => {
+        const textDiv = preview.querySelector('.article-text');
+        const btn = preview.querySelector('.see-more');
+        textDiv.classList.add("measure");
+        const fullHeight = textDiv.scrollHeight;
+        const lineHeight = parseInt(window.getComputedStyle(textDiv).lineHeight);
+        textDiv.classList.remove("measure");
+        if (fullHeight > lineHeight + 2) btn.style.display = "block";
+    });
+
+});
+
+function toggleSeeMore(id) {
+    const text = document.getElementById(`text-${id}`);
+    const btn = document.getElementById(`btn-${id}`);
+    if (text.classList.contains('expanded')) {
+        text.classList.remove('expanded');
+        btn.innerText = "See more";
+    } else {
+        text.classList.add('expanded');
+        btn.innerText = "See less";
+    }
+}
+</script>
+
+{% endblock %}

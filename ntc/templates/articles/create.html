@@ -1,0 +1,283 @@
+{% comment %} {% comment %} {% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Article</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background:#f4f4f4;">
+<div class="container mt-4">
+
+    <div class="card mx-auto" style="max-width:750px;">
+        <div class="card-header bg-primary text-white">Write New Article</div>
+
+        <div class="card-body">
+
+            <div class="d-flex align-items-center mb-3">
+                {% if employee.profile_image %}
+                    <img src="{{ employee.profile_image.url }}" class="rounded-circle" width="55" height="55">
+                {% else %}
+                    <div class="rounded-circle d-flex justify-content-center align-items-center"
+                         style="width:55px;height:55px;background:#6c757d;color:white;font-size:28px;">
+                        👤
+                    </div>
+                {% endif %}
+
+                <div class="ms-3">
+                    <strong>{{ employee.name }}</strong><br>
+                    <small class="text-muted">{{ now|date:"F j, Y, g:i a" }}</small>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label>Title</label>
+                    {{ form.title }}
+                </div>
+
+                <div class="mb-3">
+                    <label>Article Type</label>
+                    {{ form.category }}
+                </div>
+
+                <div class="mb-3">
+                    <label>Cover Image (optional)</label>
+                    {{ form.cover_image }}
+                </div>
+
+                <div class="mb-3">
+                    <label>Description</label>
+                    {{ form.content }}
+                </div>
+
+                <button name="action" value="publish" class="btn btn-primary w-100 mb-2">
+                    Publish Article
+                </button>
+
+                <button name="action" value="draft" class="btn btn-secondary w-100">
+                    Save as Draft
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html> {% endcomment %}
+{% comment %} 
+
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Article</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Modal styling */
+        #writeArticleModal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content-custom {
+            background: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .modal-header-custom {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .modal-header-custom h5 {
+            margin: 0;
+        }
+        .close-button {
+            position: absolute;
+            right: 0;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .description-box {
+            width: 100%;
+            min-height: 60px;
+            resize: none;
+            overflow: hidden;
+            border: none;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .add-photo-button {
+            font-size: 20px;
+            cursor: pointer;
+            color: #0d6efd;
+            margin-top: 5px;
+        }
+        .employee-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .profile-pic {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body style="background:#f4f4f4;">
+
+<!-- Trigger Button (optional) -->
+<button class="btn btn-primary my-3" id="openModalBtn">Write Article</button>
+
+<!-- Modal -->
+<div id="writeArticleModal">
+    <div class="modal-content-custom">
+
+        <div class="modal-header-custom">
+            <h5>Write Article</h5>
+            <span class="close-button">&times;</span>
+        </div>
+
+        <div class="employee-info">
+            {% if employee.profile_image %}
+                <img src="{{ employee.profile_image.url }}" class="profile-pic">
+            {% else %}
+                <div class="rounded-circle d-flex justify-content-center align-items-center"
+                     style="width:50px;height:50px;background:#6c757d;color:white;font-size:24px;">
+                    👤
+                </div>
+            {% endif %}
+            <div>
+                <strong>{{ employee.name }}</strong><br>
+                <small class="text-muted" id="timeAgo">just now</small>
+            </div>
+        </div>
+
+        <form id="articleForm" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                {{ form.title|add_class:"form-control" }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.category|add_class:"form-select" }}
+            </div>
+
+            <div class="mb-3">
+                <textarea name="content" class="description-box" placeholder="Write your article...">{{ form.content.value }}</textarea>
+                <div class="add-photo-button">+ Add Photo
+                    <input type="file" name="cover_image" class="d-none" id="coverImageInput">
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary w-50" id="saveDraft">Save as Draft</button>
+                <button type="submit" class="btn btn-primary w-50">Publish</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById("writeArticleModal");
+    const openBtn = document.getElementById("openModalBtn");
+    const closeBtn = modal.querySelector(".close-button");
+    const textarea = modal.querySelector(".description-box");
+    const addPhotoBtn = modal.querySelector(".add-photo-button");
+    const photoInput = document.getElementById("coverImageInput");
+
+    // Open and close modal
+    openBtn.onclick = () => modal.style.display = "block";
+    closeBtn.onclick = () => modal.style.display = "none";
+    window.onclick = e => { if(e.target == modal) modal.style.display = "none"; }
+
+    // Auto-resize textarea
+    textarea.addEventListener("input", () => {
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    });
+
+    // Open file input
+    addPhotoBtn.addEventListener("click", () => photoInput.click());
+
+    // Time ago function
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        const intervals = [
+            { label: 'week', sec: 604800 },
+            { label: 'day', sec: 86400 },
+            { label: 'hr', sec: 3600 },
+            { label: 'min', sec: 60 },
+            { label: 'sec', sec: 1 }
+        ];
+        for (let i of intervals) {
+            const count = Math.floor(seconds / i.sec);
+            if(count > 0) return `${count} ${i.label}${count>1?'s':''} ago`;
+        }
+        return 'just now';
+    }
+    document.getElementById("timeAgo").innerText = timeAgo(new Date());
+
+    // Save Draft via AJAX
+    document.getElementById("saveDraft").addEventListener("click", () => {
+        const formData = new FormData(document.getElementById("articleForm"));
+        formData.append("action", "draft");
+
+        fetch("{% url 'write_article' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success){
+                alert("Draft saved! Content remains.");
+            } else {
+                alert("Error saving draft.");
+            }
+        });
+    });
+
+    // AJAX submit for publish
+    document.getElementById("articleForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.append("action", "publish");
+
+        fetch("{% url 'write_article' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success && data.redirect){
+                window.location.href = data.redirect;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>  {% endcomment %}

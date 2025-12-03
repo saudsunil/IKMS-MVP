@@ -1,0 +1,678 @@
+<!-- Comments Toggle Button -->
+<div class="toggle-comments-btn" data-article-id="{{ article.id }}">
+  <div class="comments-toggle">
+    <i class="fa-solid fa-comment"></i>
+    <span class="comments-label">Comments</span>
+    <span class="comment-count" id="comment-count-{{ article.id }}">
+      {{ article.comments.count }} comment{% if article.comments.count != 1 %}s{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Comments Section -->
+
+<div class="comments-section" id="comments-{{ article.id }}" aria-hidden="true" style="display:none; background:white;">
+  <div class="comment-list">
+    {% for c in article.top_comments %}
+    <div class="comment-row" data-comment-id="{{ c.id }}">
+      
+      <!-- Avatar -->
+      {% if c.author.profile_image %}
+        <img class="comment-avatar" src="{{ c.author.profile_image.url }}" alt="{{ c.author.name }}">
+      {% else %}
+        <div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>
+      {% endif %}
+
+      <!-- Comment Container -->
+      <div class="comment-container">
+        <div class="comment-card">
+          <div class="comment-meta">
+            <span class="comment-user">{{ c.author.name }}</span>
+            <span class="comment-time" data-time="{{ c.created_at.isoformat }}">{{ c.created_at }}</span>
+          </div>
+          <div class="comment-body">{{ c.body }}</div>
+        </div>
+
+        <div class="comment-actions">
+          <button type="button" class="reply-link" data-comment-id="{{ c.id }}" data-comment-author="{{ c.author.name }}">Reply</button>
+          <div class="comment-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="actions-menu" role="menu" aria-hidden="true">
+              <button class="edit-btn" data-comment-id="{{ c.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button class="delete-btn" data-comment-id="{{ c.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Replies -->
+        {% if c.comment_set.exists %}
+        <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
+   Show Replies({{ c.comment_set.count }})
+        </button>
+        <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
+          {% for r in c.comment_set.all %}
+          <div class="reply-row" data-reply-id="{{ r.id }}">
+            
+            {% if r.author.profile_image %}
+              <img class="reply-avatar" src="{{ r.author.profile_image.url }}" alt="{{ r.author.name }}">
+            {% else %}
+              <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
+            {% endif %}
+
+            <div class="reply-container">
+              <div class="reply-card">
+
+    <div class="reply-meta">
+        <strong>{{ r.author.name }}</strong>
+        <span class="reply-time" data-time="{{ r.created_at.isoformat }}">{{ r.created_at }}</span>
+    </div>
+
+    {% if r.parent %}
+        <div class="reply-parent">
+            <span class="reply-parent-author">{{ r.parent.author.name }}</span>
+            <span class="reply-body">{{ r.body }}</span>
+        </div>
+    {% endif %}
+
+</div>
+
+
+              <div class="reply-actions">
+<button type="button"class="reply-link" data-parent-id="{{ r.parent.id }}"data-comment-author="{{ r.author.name }}">Reply</button>
+
+                <div class="reply-ellipsis">
+                  <i class="fa-solid fa-ellipsis"></i>
+                  <div class="reply-actions-menu" role="menu" aria-hidden="true">
+                    <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% empty %}
+      <div class="no-comment text-center">No comments yet</div>
+    {% endfor %}
+  </div>
+
+  <!-- New Comment Form -->
+  <form class="comment-form" data-article-id="{{ article.id }}">
+    {% csrf_token %}
+    <div class="replying-indicator" style="display:none; font-size:13px; color:#555; margin-bottom:6px;">
+      Replying to <span class="reply-to-name" style="font-weight:600"></span>
+      &nbsp;
+      <button type="button" class="cancel-reply" style="background:none;border:none;color:#888;cursor:pointer;padding:0;margin-left:8px;">Cancel</button>
+    </div>
+
+    <div class="input-wrapper">
+      <input type="text" name="comment" placeholder="Write a comment..." autocomplete="off" required>
+      <button class="comment-btn" type="submit" title="Post"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </form>
+</div>
+<!-- Font Awesome (keep only once on page) --> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* --- Comments Section --- */
+.comments-section {
+  display: none;
+  border-top: 1px solid #ddd;
+  padding: 12px 10px;
+  background: #f7f7f7;
+}
+
+/* Comment Toggle Button */
+.toggle-comments-btn { width: 100%; background: transparent; border: none; padding: 0; cursor: pointer; }
+.comments-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 6px; font-size: 15px; color: #333; border-top: 1px solid #ddd; position: relative; }
+.comment-count { position: absolute; top: 0; right: 10px; font-size: 12px; color: #666; }
+
+/* Comment List */
+.comment-list { max-height: 360px; overflow-y: auto; margin-bottom: 10px; padding-right: 6px; }
+
+
+
+
+
+
+/* --- Comments / Replies Auto-width Cards --- */
+.comment-row, .reply-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;    /* spacing between avatar & card */
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+ 
+}
+
+.comment-container, .reply-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;     /* grow/shrink as needed */
+  min-width: 0;       /* critical for flex auto-shrink */
+}
+
+/* Comment Card auto width based on text */
+.comment-card, .reply-card {
+  display: inline-flex;     /* shrink to fit text */
+  flex-direction: column;
+  background: #fff;
+  padding: 0px 0px 0px 0px;
+ 
+  word-break: break-word;
+  max-width: 100%;          /* never exceed container */
+  width: fit-content;       /* shrink to fit text */
+  border:none;
+  background:none;
+}
+.comment-meta, .reply-meta {
+  display: flex;
+ 
+  align-items: center;
+  gap: 6px;
+
+}
+
+.comment-user, .reply-user, .reply-meta strong {
+  font-weight: 600;
+  font-size: 13px;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom:-5px;
+}
+
+.comment-time, .reply-time {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-bottom:-8px;
+
+}
+
+.comment-body, .reply-body {
+  font-size: 13px;
+  line-height: 1.35;
+  word-break: break-word;
+  white-space: pre-wrap;  /* wrap naturally */
+  margin-top: 4px;
+
+}
+.reply-body{
+  margin-left:2px;
+}
+
+.reply-parent {
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #444;
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+.reply-parent-author {
+    font-weight: 600;
+    font-size: 13px;
+    color: #222;
+    margin-top:4px;
+}
+
+.comment-actions, .reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  border:none; 
+  background:none;
+  border-style:none;
+}
+
+
+.reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left:-20px;
+  width: 100%;
+}
+/* Avatar: fixed width */
+/* Avatar takes 30% of row */
+.comment-avatar, .reply-avatar {
+  width: 35px;           /* 30% of parent row *     /* optional max size */
+  height: 35px;         /* auto height to keep aspect */
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  flex-shrink:0;
+  margin-top:2px;
+}
+.comment-avatar{ margin-left:10px;}
+
+/* Container takes remaining 70% */
+.comment-container, .reply-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 70%;        /* grow/shrink as needed */
+  min-width: 0;          /* allows text to wrap */
+}
+
+.comment-ellipsis, .reply-ellipsis {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+  cursor:pointer;
+  margin-top:-2px;
+  color:#555;
+  font-size:12px;
+}
+
+.actions-menu, .reply-actions-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 1200;
+  min-width: 120px;
+  margin-top: 4px;
+}
+
+.actions-menu button, .reply-actions-menu button {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #555;
+  text-align: left;
+}
+
+.actions-menu button:hover, .reply-actions-menu button:hover { background: #f5f5f5; }
+
+.reply-link{
+  border: none;           /* remove border */
+  background: none;       /* remove background */
+  color: #555;         /* text color */
+  padding: 0;             /* remove default padding if needed */
+  font-size: 12px;        /* adjust font size */
+  cursor: pointer; 
+  margin-top: -12px;
+  margin-left:0px;       /* pointer on hover */
+}
+
+.reply-list { display: flex; flex-direction: column; gap: 10px; padding-left: 45px; box-sizing: border-box; width: 100%; }
+
+/* Toggle Replies Button */
+.toggle-replies-btn { background:none; border:none; font-size:12px; color:black; margin-left:20px; margin-top:-2px;   text-align: left;  }
+
+/* Input */
+.comment-form { width: 100%; margin-top: 8px; }
+.input-wrapper { position: relative; width: 100%; }
+.comment-form input[type="text"] { width: 100%; padding: 10px 12px; padding-right: 45px; border-radius: 20px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; outline:none; }
+.comment-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background:none; border:none; font-size: 18px; color:#999; cursor:pointer; display:none; }
+.comment-btn.visible { display: block; }
+
+/* Responsive */
+@media (max-width: 520px) {
+  .comment-list { max-height: 260px; }
+  .comment-avatar { margin-left: 6px; }
+  .reply-list { padding-left: 48px; }
+}
+</style>
+
+<script>
+(function() {
+    // ---------- Helper functions ----------
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : [];
+        for (const c of cookies) if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
+        return null;
+    }
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function timeAgo(date) {
+        const d = new Date(date);
+        if (isNaN(d)) return '';
+        const sec = Math.floor((new Date() - d)/1000);
+        if (sec < 5) return 'Just now';
+        if (sec < 60) return sec+'s';
+        const min = Math.floor(sec/60);
+        if (min < 60) return min+'m';
+        const hrs = Math.floor(min/60);
+        if (hrs < 24) return hrs+'h';
+        const days = Math.floor(hrs/24);
+        if (days < 30) return days+'d';
+        const months = Math.floor(days/30);
+        if (months < 12) return months+'m';
+        return Math.floor(months/12)+'y';
+    }
+
+    function updateTimes() {
+        document.querySelectorAll('.comment-time, .reply-time').forEach(el => {
+            const t = el.dataset.time;
+            if (t) el.textContent = timeAgo(t);
+        });
+    }
+
+    // ---------- Add a reply dynamically ----------
+function addReply(parentId, data){
+    const replyList = document.getElementById(`replies-${parentId}`);
+    if(!replyList) return;
+    replyList.style.display='block';
+
+    const div = document.createElement('div');
+    div.className='reply-row';
+    div.dataset.replyId = data.id;
+
+    div.innerHTML = `
+      ${data.profile_image 
+        ? `<img class="reply-avatar" src="${data.profile_image}" alt="${escapeHtml(data.author)}">`
+        : `<div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>`
+      }
+
+      <div class="reply-container">
+        <div class="reply-card">
+          <div class="reply-meta">
+            <strong>${escapeHtml(data.author)}</strong>
+            <span class="reply-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+          </div>
+
+          ${data.parent_author 
+            ? `<div class="reply-parent">
+                 <span class="reply-parent-author">${escapeHtml(data.parent_author)}</span>
+                 <span class="reply-body">${escapeHtml(data.body)}</span>
+               </div>`
+            : `<div class="reply-body">${escapeHtml(data.body)}</div>`
+          }
+        </div>
+
+        <div class="reply-actions">
+          <button type="button" class="reply-link" 
+                  data-parent-id="${parentId}" 
+                  data-comment-author="${escapeHtml(data.author)}">
+            Reply
+          </button>
+          <div class="reply-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="reply-actions-menu" role="menu" aria-hidden="true">
+              <button class="edit-reply-btn" data-reply-id="${data.id}">
+                <i class="fa-solid fa-pen"></i> Edit
+              </button>
+              <button class="delete-reply-btn" data-reply-id="${data.id}">
+                <i class="fa-solid fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    replyList.appendChild(div);
+    const toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${parentId}']`);
+    if(toggleBtn) toggleBtn.textContent = `Hide Replies (${replyList.children.length})`;
+
+    updateTimes();
+}
+
+
+
+    // ---------- Add a top-level comment dynamically ----------
+  function addComment(articleId, data) {
+        const commentList = document.querySelector(`#comments-${articleId} .comment-list`);
+        if(!commentList) return;
+
+        const div = document.createElement('div');
+        div.className = 'comment-row';
+        div.dataset.commentId = data.id;
+
+        div.innerHTML = `
+            ${data.profile_image 
+                ? `<img class="comment-avatar" src="${data.profile_image}" alt="">`
+                : `<div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
+            <div class="comment-container">
+                <div class="comment-card">
+                    <div class="comment-meta">
+                        <span class="comment-user">${escapeHtml(data.username)}</span>
+                        <span class="comment-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+                    </div>
+                    <div class="comment-body">${escapeHtml(data.body)}</div>
+                </div>
+                <div class="comment-actions">
+                    <button type="button" class="reply-link" data-comment-id="${data.id}" data-comment-author="${escapeHtml(data.username)}">Reply</button>
+                </div>
+                <button type="button" class="toggle-replies-btn" data-parent-id="${data.id}" style="display:none;">Show Replies (0)</button>
+                <div class="reply-list" id="replies-${data.id}" style="display:none;"></div>
+            </div>
+        `;
+        commentList.appendChild(div);
+
+        // Update comment count
+        const countEl = document.getElementById(`comment-count-${articleId}`);
+        if(countEl) countEl.textContent = commentList.children.length + (commentList.children.length === 1 ? ' comment' : ' comments');
+
+        updateTimes();
+    }
+
+    // ---------- Initialize comment system ----------
+   function initComments() {
+        if(window.kbmsCommentsInit) return;
+        window.kbmsCommentsInit = true;
+
+        // Toggle comments section
+        document.querySelectorAll('.toggle-comments-btn').forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+                const id = btn.dataset.articleId;
+                const section = document.getElementById(`comments-${id}`);
+                if(!section) return;
+                const hidden = section.style.display === 'none' || !section.style.display;
+                section.style.display = hidden ? 'block' : 'none';
+                section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+                if(hidden) updateTimes();
+            });
+        });
+
+        // Handle comment forms
+        document.querySelectorAll('.comment-form').forEach(form => {
+            if (form.dataset.bound) return;
+            form.dataset.bound = '1';
+
+            const input = form.querySelector('input[name="comment"]');
+            const sendBtn = form.querySelector('.comment-btn');
+            const articleId = form.dataset.articleId;
+            const replyingIndicator = form.querySelector('.replying-indicator');
+            if (!input || !sendBtn || !articleId) return;
+
+            input.addEventListener('input', () => sendBtn.classList.toggle('visible', input.value.trim() !== ''));
+
+            form.addEventListener('click', e => {
+                if (e.target.closest('.cancel-reply')) {
+                    delete form.dataset.replyTo;
+                    if (replyingIndicator) replyingIndicator.style.display = 'none';
+                    input.placeholder = 'Write a comment...';
+                    input.focus();
+                }
+            });
+
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const body = input.value.trim();
+                if (!body) return;
+                sendBtn.disabled = true;
+
+                try {
+                    const isReply = !!form.dataset.replyTo;
+                    const url = isReply ? `/comments/reply/${form.dataset.replyTo}/` : `/comments/add/${articleId}/`;
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
+                        body: JSON.stringify({ body })
+                    });
+                    const data = await res.json().catch(()=>({}));
+                    if (!data || (!data.success && !data.id)) return;
+
+                    if (isReply) addReply(form.dataset.replyTo, data);
+                    else addComment(articleId, data);
+
+                    input.value = '';
+                    sendBtn.classList.remove('visible');
+                    delete form.dataset.replyTo;
+                    if (replyingIndicator) replyingIndicator.style.display = 'none';
+
+                } catch (err) { console.error(err); }
+                finally { sendBtn.disabled = false; updateTimes(); }
+            });
+        });
+
+        // Delegated click for reply, toggle, edit, delete
+        document.addEventListener('click', async e => {
+            const csrftoken = getCookie('csrftoken');
+
+            // Toggle ellipsis menus
+            ['.comment-ellipsis', '.reply-ellipsis'].forEach(sel => {
+                const el = e.target.closest(sel);
+                if (el) {
+                    const menu = el.querySelector(sel === '.comment-ellipsis' ? '.actions-menu' : '.reply-actions-menu');
+                    document.querySelectorAll(sel === '.comment-ellipsis' ? '.actions-menu' : '.reply-actions-menu')
+                        .forEach(m => { if (m !== menu) m.style.display = 'none'; });
+                    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                    return;
+                }
+            });
+
+            // Reply button
+               // Reply button
+// Reply button (supports buttons that use data-parent-id or data-comment-id)
+const replyBtn = e.target.closest('.reply-link');
+if (replyBtn) {
+    // prefer explicit parent id, fallback to comment id
+    const parentId = replyBtn.dataset.parentId || replyBtn.dataset.commentId;
+    const author = replyBtn.dataset.commentAuthor || replyBtn.dataset.commentAuthorName || '';
+
+    // debugging: uncomment if you need to see what's happening
+    // console.log('replyBtn clicked', { parentId, author, dataset: replyBtn.dataset });
+
+    if (!parentId) {
+        // no parent id — nothing to reply to
+        console.warn('Reply button clicked but no parent id found on button', replyBtn);
+        return;
+    }
+
+    const form = replyBtn.closest('.comments-section')?.querySelector('.comment-form') || document.querySelector('.comment-form');
+    if (!form) {
+        console.warn('Reply form not found for reply button', replyBtn);
+        return;
+    }
+
+    const input = form.querySelector('input[name="comment"]');
+    const replyingIndicator = form.querySelector('.replying-indicator');
+
+    // set the id the server expects (your fetch uses form.dataset.replyTo)
+    form.dataset.replyTo = parentId;
+
+    if (replyingIndicator) {
+        replyingIndicator.style.display = 'block';
+        replyingIndicator.querySelector('.reply-to-name').textContent = author || 'user';
+    }
+
+    input.placeholder = author ? `Replying to ${author}...` : 'Write a reply...';
+    input.focus();
+    return;
+}
+
+
+
+            // Toggle replies
+            const toggleBtn = e.target.closest('.toggle-replies-btn');
+            if (toggleBtn) {
+                const parentId = toggleBtn.dataset.parentId;
+                const replyList = document.getElementById(`replies-${parentId}`);
+                if (!replyList) return;
+                const hidden = replyList.style.display === 'none' || !replyList.style.display;
+                replyList.style.display = hidden ? 'block' : 'none';
+                toggleBtn.textContent = hidden ? `Hide Replies (${replyList.children.length})` : `Show Replies (${replyList.children.length})`;
+                return;
+            }
+
+            // Edit/Delete
+            const handleEditDelete = async (btnSelector, bodySelector, urlPrefix) => {
+                const btn = e.target.closest(btnSelector);
+                if (!btn) return false;
+                const row = btn.closest('.comment-row, .reply-row');
+                if (!row) return true;
+                const idKey = btnSelector.includes('reply') ? 'replyId' : 'commentId';
+                const id = btn.dataset[idKey];
+                const bodyEl = row.querySelector(bodySelector);
+                if (!bodyEl) return true;
+
+                if (btnSelector.includes('edit')) {
+                    const oldText = bodyEl.textContent.trim();
+                    const updated = prompt('Edit:', oldText);
+                    if (!updated || updated.trim() === '' || updated.trim() === oldText) return true;
+                    try {
+                        const res = await fetch(`${urlPrefix}${id}/`, {
+                            method:'POST',
+                            headers:{'X-CSRFToken': csrftoken,'Content-Type':'application/json'},
+                            body: JSON.stringify({body: updated.trim()})
+                        });
+                        const data = await res.json().catch(()=>({}));
+                        if (data.success) bodyEl.textContent = updated.trim();
+                    } catch(err){console.error(err);}
+                }
+
+                if (btnSelector.includes('delete')) {
+                    if(!confirm('Delete?')) return true;
+                    try {
+                        const res = await fetch(`${urlPrefix}${id}/`, {method:'POST', headers:{'X-CSRFToken':csrftoken}});
+                        const data = await res.json().catch(()=>({}));
+                        if (data.success) row.remove();
+                    } catch(err){console.error(err);}
+                }
+
+                return true;
+            };
+
+            ['.edit-btn','.delete-btn','.edit-reply-btn','.delete-reply-btn']
+                .forEach(sel => handleEditDelete(sel, sel.includes('reply') ? '.reply-body' : '.comment-body', '/comments/' + (sel.includes('edit')?'edit/':'delete/')));
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => { initComments(); updateTimes(); });
+    } else { initComments(); updateTimes(); }
+
+    setInterval(updateTimes, 30000);
+
+})();
+</script> 

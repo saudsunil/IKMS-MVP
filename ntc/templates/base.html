@@ -1,0 +1,600 @@
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{% block title %}KBMS{% endblock %}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+
+<style>
+/* page layout */
+body { background: #f7f7f7; }
+.sidebar {
+    height: 100vh;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+}
+.profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #5a5a5a; }
+.feed-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+
+/* top notification area */
+#alertBox { display: none; position: sticky; top: 10px; z-index: 1200; }
+
+/* modal styling (centered square-like) */
+#writeArticleModal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity .18s ease;
+    z-index: 2000;
+}
+#writeArticleModal.show { visibility: visible; opacity: 1; }
+
+.modal-content-custom {
+    width: 540px;
+    max-width: calc(100% - 32px);
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    display: flex;
+    flex-direction: column;
+}
+
+/* header */
+.modal-header-custom { display:flex; justify-content:center; align-items:center; position:relative; margin-bottom: 14px; }
+.modal-header-custom h5 { margin:0; font-weight:600; }
+.close-button { position:absolute; right:0; top:-6px; font-size:26px; cursor:pointer; color:#333; }
+
+/* employee */
+.employee-info { display:flex; gap:12px; align-items:center; margin-bottom:12px; margin-top:-15px; }
+.profile-pic { width:45px; height:45px; border-radius:50%; object-fit:cover; }
+
+/* inputs */
+.form-control, .form-select, textarea {
+    border-radius:8px;
+    border:1px solid #ced4da;
+    padding:10px;
+    font-size:14px;
+    width:100%;
+}
+textarea { min-height:100px; resize:vertical; }
+ 
+.description-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+/* Textarea without border */
+.description-input {
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 20px 0;
+    font-size: 14px;
+    background: transparent;
+    min-height: 20px;
+}
+
+/* Add Photo Area */
+.add-photo-area {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #0d6efd;
+}
+
+/* Camera Icon */
+.camera-icon {
+    font-size: 25px;
+}
+
+/* Image Preview Container */
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Each Image Box */
+.image-preview-container img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.selected-image-wrapper {
+    position:absolute; top:10px; right:10px; display:flex; gap:6px; align-items:center;
+}
+.selected-image-wrapper img { max-width:64px; max-height:64px; border-radius:6px; object-fit:cover; }
+.remove-image {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; background:#dc3545; color:#fff; border-radius:50%; cursor:pointer; font-size:14px;
+}
+
+/* buttons */
+.modal-actions { display:flex; gap:10px; margin-top:12px; }
+.modal-actions .btn { flex:1; }
+
+/* small responsiveness */
+@media (max-width:560px) {
+    .modal-content-custom { padding:16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Left Sidebar -->
+    <div class="col-3 sidebar">
+      {% block left_sidebar %}
+      <h5 class="text-center">Your Profile</h5>
+      {% if employee %}
+        <div class="text-center mt-2">
+          {% if employee.profile_image %}
+            <img src="{{ employee.profile_image.url }}" class="profile-img mb-2">
+          {% else %}
+            <div class="profile-img mb-2 d-flex justify-content-center align-items-center mx-auto" style="background-color:#5a5a5a;color:white;font-size:36px;">👤</div>
+          {% endif %}
+          <p class="mb-0"><strong>{{ employee.name }}</strong></p>
+          <p class="text-muted">{{ employee.position }}</p>
+
+          <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-secondary mt-2 w-100">Edit</a>
+          <a href="{% url 'logout' %}" class="btn btn-danger btn-sm mt-2 w-100">Logout</a>
+        </div>
+      {% else %}
+        <div class="text-center"><p>Please <a href="{% url 'login' %}">login</a></p></div>
+      {% endif %}
+
+      <hr>
+      <button type="button" class="btn btn-primary w-100 mb-2" id="WriteArticleBtn">Write Article</button>
+
+      <ul class="list-group">
+        <a href="/" class="list-group-item list-group-item-action">Home</a>
+        <a href="/employees/" class="list-group-item list-group-item-action">Employees</a>
+        <a href="/articles/" class="list-group-item list-group-item-action">All Articles</a>
+      </ul>
+      {% endblock %}
+    </div>
+
+    <!-- Main content -->
+    <div class="col-9 p-4">
+      <!-- alert area shown at top of content -->
+      <div id="alertBox"></div>
+
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+
+<!-- WRITE ARTICLE MODAL (hidden initially) -->
+<div id="writeArticleModal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-content-custom" role="document">
+
+    <div class="modal-header-custom">
+      <h5 style="margin-top:-15px;">Write Article</h5>
+      <div class="close-button" id="modalCloseBtn" title="Close"  style="margin-top:-15px;">&times;</div>
+    </div>
+
+    <div class="employee-info">
+      {% if employee and employee.profile_image %}
+        <img src="{{ employee.profile_image.url }}" class="profile-pic">
+      {% else %}
+        <div class="profile-pic d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;">👤</div>
+      {% endif %}
+      <div>
+        <strong>{% if employee %}{{ employee.name }}{% else %}Guest{% endif %}</strong><br>
+
+      </div>
+    </div>
+
+    <!-- form posts to write_article view (AJAX used) -->
+    <form id="articleForm" method="POST" enctype="multipart/form-data" action="{% url 'write_article' %}">
+      {% csrf_token %}
+      <!-- hidden id of draft if saved (populated client-side) -->
+      <input type="hidden" name="draft_id" id="draftIdInput" value="">
+
+      <!-- Title -->
+      <div class="mb-3">
+        <input type="text" name="title" id="titleInput" class="form-control" placeholder="Title" value="{{ form.title.value|default:'' }}">
+      </div>
+
+      <!-- Category -->
+      <div class="mb-3">
+        <label for="categorySelect" class="form-label visually-hidden">Article Type</label>
+        <select name="category" id="categorySelect" class="form-select">
+          <option value="" disabled selected>Select Article Type</option>
+          <option value="experience">Employee Experience</option>
+          <option value="samrika">Samrika</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+<!-- Description + Image Picker -->
+
+     <div class="description-section">
+    <!-- Textarea -->
+    <textarea name="content" id="contentInput" class="description-input" placeholder="Write your article..." style="margin-top:-20px;">{{ form.content.value|default:'' }}</textarea>
+
+    <!-- Add Photo button -->
+    <div class="add-photo-area" id="addPhotoArea" style="margin-top:-30px;>
+        <span class="camera-icon">📷</span>
+        <span class="add-photo-text">Add photo</span>
+        <input type="file" id="coverImageInput" name="cover_image" accept="image/*" multiple class="d-none">
+    </div>
+
+    <!-- Image Preview Container -->
+    <div class="image-preview-container" id="selectedImageContainer"></div>
+</div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary">Save as Draft</button>
+        <button type="submit" id="publishBtn" class="btn btn-primary">Publish</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- small helper area for alerts (optional) -->
+<div id="hiddenArea" style="display:none;"></div>
+<script>
+/* =========================
+   Helper: Get CSRF from cookie
+========================= */
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+/* =========================
+   Modal open/close & form reset
+========================= */
+const modal = document.getElementById('writeArticleModal');
+const openBtn = document.getElementById('WriteArticleBtn');
+const closeBtn = document.getElementById('modalCloseBtn');
+const articleForm = document.getElementById('articleForm');
+
+const titleInput = document.getElementById('titleInput');
+const categorySelect = document.getElementById('categorySelect');
+const contentInput = document.getElementById('contentInput');
+const addPhotoArea = document.getElementById("addPhotoArea");
+const photoInput = document.getElementById("coverImageInput");
+const imageContainer = document.getElementById("selectedImageContainer");
+const draftIdInput = document.getElementById('draftIdInput');
+const alertBox = document.getElementById('alertBox');
+
+openBtn.addEventListener('click', () => {
+    modal.classList.add('show');
+
+    // populate draft from localStorage if exists
+    const saved = localStorage.getItem('article_draft');
+    if (saved) {
+        try {
+            const draft = JSON.parse(saved);
+            if (draft.title) titleInput.value = draft.title;
+            if (draft.content) contentInput.value = draft.content;
+            if (draft.category) categorySelect.value = draft.category;
+            if (draft.draft_id) draftIdInput.value = draft.draft_id;
+            if (draft.imageDataUrls) populateImagesFromDraft(draft);
+        } catch(e) {
+            console.warn('Error parsing draft', e);
+            resetFormFields();
+        }
+    } else {
+        resetFormFields();
+    }
+});
+
+closeBtn.addEventListener('click', () => {
+    modal.classList.remove('show');
+    resetFormFields();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+        modal.classList.remove('show');
+        resetFormFields();
+    }
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.classList.remove('show');
+        resetFormFields();
+    }
+});
+
+/* =========================
+   Auto-resize textarea
+========================= */
+contentInput.addEventListener('input', () => {
+    contentInput.style.height = 'auto';
+    contentInput.style.height = contentInput.scrollHeight + 'px';
+});
+
+/* =========================
+   Multiple image previews
+========================= */
+function showSelectedImages(files) {
+    imageContainer.innerHTML = "";
+    if (files.length === 0) {
+        imageContainer.style.display = 'none';
+        return;
+    }
+
+    imageContainer.style.display = 'flex';
+    imageContainer.style.flexWrap = 'wrap';
+    imageContainer.style.gap = '10px';
+
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.display = 'inline-block';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+
+            const removeBtn = document.createElement('div');
+            removeBtn.innerHTML = '&times;';
+            removeBtn.style.position = 'absolute';
+            removeBtn.style.top = '-8px';
+            removeBtn.style.right = '-8px';
+            removeBtn.style.background = 'red';
+            removeBtn.style.color = 'white';
+            removeBtn.style.width = '20px';
+            removeBtn.style.height = '20px';
+            removeBtn.style.borderRadius = '50%';
+            removeBtn.style.textAlign = 'center';
+            removeBtn.style.lineHeight = '18px';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.title = "Remove image";
+
+            removeBtn.addEventListener('click', () => {
+                const dt = new DataTransfer();
+                Array.from(photoInput.files)
+                    .filter((_, i) => i !== index)
+                    .forEach(f => dt.items.add(f));
+                photoInput.files = dt.files;
+                showSelectedImages(photoInput.files);
+
+                // update draft in localStorage
+                const saved = localStorage.getItem('article_draft');
+                if (saved) {
+                    const d = JSON.parse(saved);
+                    d.imageDataUrls = Array.from(photoInput.files).map(f => URL.createObjectURL(f));
+                    localStorage.setItem('article_draft', JSON.stringify(d));
+                }
+            });
+
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            imageContainer.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // save image previews in localStorage
+    const saved = localStorage.getItem('article_draft');
+    const d = saved ? JSON.parse(saved) : {};
+    d.imageDataUrls = Array.from(files).map(f => URL.createObjectURL(f));
+    localStorage.setItem('article_draft', JSON.stringify(d));
+}
+
+/* =========================
+   File input handling
+========================= */
+addPhotoArea.addEventListener('click', () => photoInput.click());
+
+photoInput.setAttribute('multiple', ''); // allow multiple files
+
+photoInput.addEventListener('change', () => {
+    if (photoInput.files.length > 0) {
+        showSelectedImages(photoInput.files);
+    }
+});
+
+/* =========================
+   Populate images from draft
+========================= */
+function populateImagesFromDraft(draft) {
+    if (draft.imageDataUrls && draft.imageDataUrls.length > 0) {
+        imageContainer.innerHTML = "";
+        draft.imageDataUrls.forEach((dataUrl, index) => {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.display = 'inline-block';
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+
+            const removeBtn = document.createElement('div');
+            removeBtn.innerHTML = '&times;';
+            removeBtn.style.position = 'absolute';
+            removeBtn.style.top = '-8px';
+            removeBtn.style.right = '-8px';
+            removeBtn.style.background = 'red';
+            removeBtn.style.color = 'white';
+            removeBtn.style.width = '20px';
+            removeBtn.style.height = '20px';
+            removeBtn.style.borderRadius = '50%';
+            removeBtn.style.textAlign = 'center';
+            removeBtn.style.lineHeight = '18px';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.title = "Remove image";
+
+            removeBtn.addEventListener('click', () => {
+                const dt = new DataTransfer();
+                Array.from(photoInput.files)
+                    .filter((_, i) => i !== index)
+                    .forEach(f => dt.items.add(f));
+                photoInput.files = dt.files;
+                showSelectedImages(photoInput.files);
+
+                const saved = localStorage.getItem('article_draft');
+                if (saved) {
+                    const d = JSON.parse(saved);
+                    d.imageDataUrls = Array.from(photoInput.files).map(f => URL.createObjectURL(f));
+                    localStorage.setItem('article_draft', JSON.stringify(d));
+                }
+            });
+
+            div.appendChild(img);
+            div.appendChild(removeBtn);
+            imageContainer.appendChild(div);
+        });
+        imageContainer.style.display = 'flex';
+        imageContainer.style.flexWrap = 'wrap';
+        imageContainer.style.gap = '10px';
+    }
+}
+
+/* =========================
+   Reset form fields
+========================= */
+function resetFormFields() {
+    titleInput.value = "";
+    categorySelect.value = "";
+    contentInput.value = "";
+    photoInput.value = "";
+    imageContainer.innerHTML = "";
+    imageContainer.style.display = 'none';
+    draftIdInput.value = "";
+}
+
+/* =========================
+   Show alert messages
+========================= */
+function showAlert(message, type='success', timeout=2200) {
+    alertBox.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}</div>`;
+    alertBox.style.display = 'block';
+    if (timeout) {
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+            alertBox.innerHTML = '';
+        }, timeout);
+    }
+}
+
+/* =========================
+   Save draft via AJAX
+========================= */
+document.getElementById('saveDraftBtn').addEventListener('click', () => {
+    const formData = new FormData(articleForm);
+    formData.append('action', 'draft');
+
+    fetch(articleForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data && data.success) {
+            const localDraft = {
+                draft_id: data.draft_id || draftIdInput.value || '',
+                title: titleInput.value,
+                content: contentInput.value,
+                category: categorySelect.value,
+                imageDataUrls: Array.from(photoInput.files).map(f => URL.createObjectURL(f))
+            };
+            localStorage.setItem('article_draft', JSON.stringify(localDraft));
+            draftIdInput.value = localDraft.draft_id || '';
+            showAlert('Draft saved', 'success', 1500);
+            setTimeout(() => modal.classList.remove('show'), 500);
+        } else {
+            showAlert('Error saving draft', 'danger', 2400);
+        }
+    })
+    .catch(err => showAlert('Error saving draft', 'danger', 2400));
+});
+
+/* =========================
+   Publish via AJAX
+========================= */
+articleForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(articleForm);
+    formData.append('action', 'publish');
+
+    fetch(articleForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data && data.success) {
+            localStorage.removeItem('article_draft');
+            draftIdInput.value = '';
+            showAlert(data.message || 'Published successfully', 'success', 1400);
+            setTimeout(() => {
+                modal.classList.remove('show');
+                window.location.reload(); // refresh articles
+            }, 700);
+        } else {
+            let errText = 'Error publishing';
+            if (data && data.errors) {
+                if (typeof data.errors === 'string') errText = data.errors;
+                else try { errText = JSON.stringify(data.errors); } catch(e) {}
+            }
+            showAlert(errText, 'danger', 3000);
+        }
+    })
+    .catch(err => showAlert('Error publishing article', 'danger', 3000));
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .profile-circle-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #0d6efd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            color: white;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+        }
+        .profile-upload-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            transform: translate(-8%, -8%);
+            width: 32px;
+            height: 32px;
+            background: #0d6efd;
+            color: white;
+            font-size: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .text-center-wrapper {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-primary text-white text-center">
+            Edit Profile
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Profile Circle -->
+                <div class="text-center-wrapper">
+                    <div class="profile-circle-wrapper">
+                        <div id="profile_image_preview" class="profile-circle" 
+                             style="
+                             {% if form.instance.profile_image %}
+                                 background-image: url('{{ form.instance.profile_image.url }}');
+                             {% else %}
+                                 background-color: #6c757d;
+                             {% endif %}
+                             ">
+                            {% if not form.instance.profile_image %}
+                                👤
+                            {% endif %}
+                        </div>
+
+                        <!-- Dropdown on + icon -->
+                        <div class="dropdown profile-upload-icon">
+                            <button class="btn btn-sm p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width:100%; height:100%; border:none; background:transparent; cursor:pointer;">
+                                +
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" id="upload_new">Upload New</a></li>
+                                <li><a class="dropdown-item" href="#" id="delete_image">Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                {{ form.profile_image }}
+
+                <!-- Other Form Fields -->
+                <div class="mb-3">{{ form.employee_code.label_tag }}{{ form.employee_code }}</div>
+                <div class="mb-3">{{ form.name.label_tag }}{{ form.name }}</div>
+                <div class="mb-3">{{ form.email.label_tag }}{{ form.email }}</div>
+                <div class="mb-3">{{ form.phone.label_tag }}{{ form.phone }}</div>
+                <div class="mb-3">{{ form.department.label_tag }}{{ form.department }}</div>
+                <div class="mb-3">{{ form.office.label_tag }}{{ form.office }}</div>
+                <div class="mb-3">{{ form.position.label_tag }}{{ form.position }}</div>
+                <div class="mb-3">{{ form.biography.label_tag }}{{ form.biography }}</div>
+
+                <button type="submit" class="btn btn-success w-100">Save Changes</button>
+            </form>
+            <a href="{% url 'homepage' %}" class="btn btn-secondary w-100 mt-2">Cancel</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const profileInput = document.getElementById('profile_image_input');
+const profilePreview = document.getElementById('profile_image_preview');
+
+document.getElementById('upload_new').addEventListener('click', function(e){
+    e.preventDefault();
+    profileInput.click();
+});
+
+document.getElementById('delete_image').addEventListener('click', function(e){
+    e.preventDefault();
+    fetch("{% url 'delete_profile_image' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Accept': 'application/json',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success'){
+            // Reset preview to placeholder
+            profilePreview.style.backgroundImage = 'none';
+            profilePreview.style.backgroundColor = '#6c757d';
+            profilePreview.innerHTML = '👤';
+        }
+    });
+});
+
+profileInput.addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(file){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            profilePreview.style.backgroundImage = `url(${e.target.result})`;
+            profilePreview.style.backgroundSize = 'cover';
+            profilePreview.style.backgroundPosition = 'center';
+            profilePreview.innerHTML = '';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+</body>
+</html>
