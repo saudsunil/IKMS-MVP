@@ -45,55 +45,21 @@
         </div>
 
         <!-- Replies -->
-        {% if c.comment_set.exists %}
-        <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
-   Show Replies({{ c.comment_set.count }})
-        </button>
-        <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
-          {% for r in c.comment_set.all %}
-          <div class="reply-row" data-reply-id="{{ r.id }}">
-            
-            {% if r.author.profile_image %}
-              <img class="reply-avatar" src="{{ r.author.profile_image.url }}" alt="{{ r.author.name }}">
-            {% else %}
-              <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
-            {% endif %}
-
-            <div class="reply-container">
-              <div class="reply-card">
-
-    <div class="reply-meta">
-        <strong>{{ r.author.name }}</strong>
-        <span class="reply-time" data-time="{{ r.created_at.isoformat }}">{{ r.created_at }}</span>
+     
+        {% with replies=c.comment_set.all %}
+  {% if replies %}
+    <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
+      Show Replies ({{ replies|length }})
+    </button>
+    <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
+      {% include "comment/reply.html" with replies=replies %}
     </div>
+  {% else %}
+    <div class="reply-list" id="replies-{{ c.id }}" style="display:none;"></div>
+  {% endif %}
+{% endwith %}
 
-    {% if r.parent %}
-        <div class="reply-parent">
-            <span class="reply-parent-author">{{ r.parent.author.name }}</span>
-            <span class="reply-body">{{ r.body }}</span>
-        </div>
-    {% endif %}
-
-</div>
-
-
-              <div class="reply-actions">
-<button type="button"class="reply-link" data-parent-id="{{ r.parent.id }}"data-comment-author="{{ r.author.name }}">Reply</button>
-
-                <div class="reply-ellipsis">
-                  <i class="fa-solid fa-ellipsis"></i>
-                  <div class="reply-actions-menu" role="menu" aria-hidden="true">
-                    <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
+      
 
       </div>
     </div>
@@ -220,11 +186,15 @@
     flex-wrap: wrap;
 }
 
-.reply-parent-author {
+.reply-parent-author{
     font-weight: 600;
     font-size: 13px;
     color: #222;
     margin-top:4px;
+  
+}
+.reply-body{
+  display:inline;
 }
 
 .comment-actions, .reply-actions {
@@ -342,65 +312,426 @@
   .reply-list { padding-left: 48px; }
 }
 </style>
-
 <script>
-(function() {
-    // ---------- Helper functions ----------
+(function () {
+
+    /* ============================================================
+       UTILITY HELPERS
+    ============================================================ */
     function getCookie(name) {
-        const cookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : [];
-        for (const c of cookies) if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
+        const cookies = document.cookie ? document.cookie.split(";").map(c => c.trim()) : [];
+        for (const c of cookies) if (c.startsWith(name + "=")) return decodeURIComponent(c.split("=")[1]);
         return null;
     }
 
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return String(unsafe)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+    function escapeHtml(str) {
+        return str ? String(str)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;") : "";
     }
 
-    function timeAgo(date) {
-        const d = new Date(date);
-        if (isNaN(d)) return '';
-        const sec = Math.floor((new Date() - d)/1000);
-        if (sec < 5) return 'Just now';
-        if (sec < 60) return sec+'s';
-        const min = Math.floor(sec/60);
-        if (min < 60) return min+'m';
-        const hrs = Math.floor(min/60);
-        if (hrs < 24) return hrs+'h';
-        const days = Math.floor(hrs/24);
-        if (days < 30) return days+'d';
-        const months = Math.floor(days/30);
-        if (months < 12) return months+'m';
-        return Math.floor(months/12)+'y';
+    function timeAgo(dateStr) {
+        const d = new Date(dateStr);
+        if (isNaN(d)) return "";
+        const s = Math.floor((new Date() - d) / 1000);
+        if (s < 5) return "Just now";
+        if (s < 60) return `${s}s`;
+        const m = Math.floor(s / 60);
+        if (m < 60) return `${m}m`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `${h}h`;
+        const d2 = Math.floor(h / 24);
+        return `${d2}d`;
     }
 
     function updateTimes() {
-        document.querySelectorAll('.comment-time, .reply-time').forEach(el => {
-            const t = el.dataset.time;
-            if (t) el.textContent = timeAgo(t);
+        document.querySelectorAll(".comment-time, .reply-time").forEach(el => {
+            el.innerText = timeAgo(el.dataset.time);
         });
     }
 
-    // ---------- Add a reply dynamically ----------
-function addReply(parentId, data){
-    const replyList = document.getElementById(`replies-${parentId}`);
-    if(!replyList) return;
-    replyList.style.display='block';
+    /* ============================================================
+       DYNAMIC COMMENT COUNT (MAIN + REPLIES)
+    ============================================================ */
+    function updateCommentCount(articleId) {
+        const container = document.querySelector(`#comments-${articleId} .comment-list`);
+        const countEl = document.getElementById(`comment-count-${articleId}`);
+        if (!container || !countEl) return;
+
+        let total = 0;
+        container.querySelectorAll(".comment-row").forEach(c => {
+            total++;
+            total += c.querySelectorAll(".reply-row").length;
+        });
+
+        countEl.innerText = `${total} ${total === 1 ? "comment" : "comments"}`;
+    }
+
+    /* ============================================================
+       UPDATE REPLY TOGGLE
+    ============================================================ */
+    function updateReplyToggle(parentId) {
+        const replyList = document.getElementById(`replies-${parentId}`);
+        const toggle = document.querySelector(`.toggle-replies-btn[data-parent-id="${parentId}"]`);
+        if (!replyList || !toggle) return;
+
+        const count = replyList.querySelectorAll(".reply-row").length;
+
+        if (count === 0) {
+            toggle.style.display = "none";
+            replyList.style.display = "none";
+            return;
+        }
+
+        toggle.style.display = "inline-block";
+
+        const isOpen = replyList.style.display === "block";
+        toggle.innerText = isOpen ? `Hide Replies (${count})` : `Show Replies (${count})`;
+    }
+
+    /* ============================================================
+       ADD MAIN COMMENT
+    ============================================================ */
+    function addMainComment(articleId, data) {
+        const list = document.getElementById(`comment-list-${articleId}`);
+        if (!list) return;
+
+        const div = document.createElement("div");
+        div.className = "comment-row";
+        div.dataset.commentId = data.id;
+
+        div.innerHTML = `
+            <div class="comment-avatar">
+                ${data.profile_image ?
+                    `<img src="${data.profile_image}">`
+                    : `<div class="avatar-placeholder"><i class="fa-solid fa-user"></i></div>`}
+            </div>
+
+            <div class="comment-container">
+                <div class="comment-card">
+                    <strong>${escapeHtml(data.author)}</strong>
+                    <span class="comment-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+                    <p>${escapeHtml(data.body)}</p>
+                </div>
+
+                <div class="comment-actions">
+                    <button class="reply-link" data-parent-id="${data.id}">Reply</button>
+                    <button class="toggle-replies-btn" data-parent-id="${data.id}" style="display:none;">Show Replies (0)</button>
+                </div>
+
+                <div class="replies" id="replies-${data.id}" style="display:none;"></div>
+            </div>
+        `;
+
+        list.prepend(div);
+
+        updateReplyToggle(data.id);
+
+        updateCommentCount(articleId);
+    }
+
+    /* ============================================================
+       ADD REPLY
+    ============================================================ */
+    function addReply(parentId, data) {
+        const replyList = document.getElementById(`replies-${parentId}`);
+        replyList.insertAdjacentHTML(
+            "beforeend",
+            `
+        <div class="reply-row" data-reply-id="${data.id}">
+            <img class="reply-avatar" src="${data.profile_image}">
+            <div class="reply-container">
+                <div class="reply-card">
+                    <strong>${escapeHtml(data.author)}</strong>
+                    <span class="reply-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+                    <p>${escapeHtml(data.body)}</p>
+                </div>
+            </div>
+        </div>
+        `
+        );
+
+        replyList.style.display = "block";
+        updateReplyToggle(parentId);
+
+        const articleId = replyList.closest(".comments-section").dataset.articleId;
+        updateCommentCount(articleId);
+    }
+
+    /* ============================================================
+       MAIN INITIALIZER
+    ============================================================ */
+    function initComments() {
+        if (window.KBMS_READY) return;
+        window.KBMS_READY = true;
+
+        const csrftoken = getCookie("csrftoken");
+
+        /* ------------------------------------------
+   MAIN COMMENTS SECTION TOGGLE
+------------------------------------------- */
+// Toggle comment section
+    document.querySelectorAll('.toggle-comments-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.articleId;
+        const section = document.getElementById(`comments-${id}`);
+        if (!section) return;
+        const hidden = section.style.display === 'none' || !section.style.display;
+        section.style.display = hidden ? 'block' : 'none';
+        section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        if (hidden) updateTimes();
+      });
+    });
+
+        /* ------------------------------------------------------------
+           COMMENT FORM
+        ------------------------------------------------------------ */
+        document.querySelectorAll(".comment-form").forEach(form => {
+            if (form.dataset.bound) return;
+            form.dataset.bound = "1";
+
+            const input = form.querySelector("input[name='comment']");
+            const btn = form.querySelector(".comment-btn");
+            const articleId = form.dataset.articleId;
+
+            input.addEventListener("input", () => {
+                btn.classList.toggle("visible", input.value.trim() !== "");
+            });
+
+            form.addEventListener("submit", async e => {
+                e.preventDefault();
+                const body = input.value.trim();
+                if (!body) return;
+
+                btn.disabled = true;
+
+                const isReply = !!form.dataset.replyTo;
+                const url = isReply
+                    ? `/comments/reply/${form.dataset.replyTo}/`
+                    : `/comments/add/${articleId}/`;
+
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                    body: JSON.stringify({ body })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    if (isReply) addReply(form.dataset.replyTo, data);
+                    else addMainComment(articleId, data);
+                }
+
+                form.reset();
+                btn.classList.remove("visible");
+                delete form.dataset.replyTo;
+                btn.disabled = false;
+
+                updateTimes();
+            });
+        });
+
+        /* ------------------------------------------------------------
+           CLICK HANDLERS
+        ------------------------------------------------------------ */
+        document.addEventListener("click", e => {
+
+            // Reply button
+            const replyBtn = e.target.closest(".reply-link");
+            if (replyBtn) {
+                const parentId = replyBtn.dataset.parentId;
+                const form = replyBtn.closest(".comments-section").querySelector(".comment-form");
+                form.dataset.replyTo = parentId;
+                form.querySelector("input").focus();
+            }
+
+            // Toggle replies
+            const toggle = e.target.closest(".toggle-replies-btn");
+            if (toggle) {
+                const parentId = toggle.dataset.parentId;
+                const list = document.getElementById(`replies-${parentId}`);
+                const isOpen = list.style.display === "block";
+                list.style.display = isOpen ? "none" : "block";
+                updateReplyToggle(parentId);
+            }
+        });
+    }
+
+    /* ============================================================
+       ON LOAD
+    ============================================================ */
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => { initComments(); updateTimes(); });
+    } else {
+        initComments(); updateTimes();
+    }
+
+    setInterval(updateTimes, 30000);
+
+})();
+</script>
+
+{% comment %}
+<script>
+(function() {
+
+  function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : [];
+    for (const c of cookies) if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
+    return null;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function timeAgo(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '';
+    const sec = Math.floor((new Date() - d) / 1000);
+    if (sec < 5) return 'Just now';
+    if (sec < 60) return sec + 's';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm';
+    const hrs = Math.floor(min / 60);
+    if (hrs < 24) return hrs + 'h';
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return days + 'd';
+    const months = Math.floor(days / 30);
+    if (months < 12) return months + 'm';
+    return Math.floor(months / 12) + 'y';
+  }
+
+  function updateTimes() {
+    document.querySelectorAll('.comment-time, .reply-time').forEach(el => {
+      const t = el.dataset.time;
+      if (t) el.textContent = timeAgo(t);
+    });
+  }
+
+ function updateCommentCount(articleId) {
+  const commentList = document.querySelector(`#comments-${articleId} .comment-list`);
+  const countEl = document.getElementById(`comment-count-${articleId}`);
+  if (!commentList || !countEl) return;
+
+  let count = 0;
+  commentList.querySelectorAll('.comment-row').forEach(comment => {
+    count += 1; // count the comment itself
+    const replyList = comment.querySelector('.reply-list');
+    if (replyList) count += replyList.children.length; // add replies
+  });
+
+  countEl.textContent = count + (count === 1 ? ' comment' : ' comments');
+}
+
+ function updateReplyToggle(parentId, open = false) {
+  const replyList = document.getElementById(`replies-${parentId}`);
+  const toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${parentId}']`);
+  if (!replyList || !toggleBtn) return;
+
+  const count = replyList.children.length;
+  if (count === 0) {
+    toggleBtn.style.display = 'none';
+    replyList.style.display = 'none';
+  } else {
+    toggleBtn.style.display = 'inline-block';
+    if (open) {
+      replyList.style.display = 'block';
+      toggleBtn.textContent = `Hide Replies (${count})`;
+      toggleBtn.dataset.open = 'true'; // store state
+    } else {
+      replyList.style.display = 'none';
+      toggleBtn.textContent = `Show Replies (${count})`;
+      toggleBtn.dataset.open = 'false';
+
+    }
+  }
+}
+
+  function addComment(articleId, data) {
+    const commentList = document.querySelector(`#comments-${articleId} .comment-list`);
+    if (!commentList) return;
+
+    const noCommentEl = commentList.querySelector('.no-comment');
+    if (noCommentEl) noCommentEl.remove();
 
     const div = document.createElement('div');
-    div.className='reply-row';
+    div.className = 'comment-row';
+    div.dataset.commentId = data.id;
+
+    const showRepliesBtn = data.reply_count && data.reply_count > 0
+      ? `<button type="button" class="toggle-replies-btn" data-parent-id="${data.id}">Show Replies (${data.reply_count})</button>`
+      : '';
+
+    div.innerHTML = `
+      ${data.profile_image 
+        ? `<img class="comment-avatar" src="${data.profile_image}" alt="${escapeHtml(data.author)}">`
+        : `<div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
+      <div class="comment-container">
+        <div class="comment-card">
+          <div class="comment-meta">
+            <span class="comment-user">${escapeHtml(data.author)}</span>
+            <span class="comment-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+          </div>
+          <div class="comment-body">${escapeHtml(data.body)}</div>
+        </div>
+
+        <div class="comment-actions">
+          <button type="button" class="reply-link" data-comment-id="${data.id}" data-comment-author="${escapeHtml(data.author)}">Reply</button>
+          <div class="comment-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="actions-menu" role="menu" aria-hidden="true">
+              <button class="edit-btn" data-comment-id="${data.id}"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button class="delete-btn" data-comment-id="${data.id}"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </div>
+
+        ${showRepliesBtn}
+        <div class="reply-list" id="replies-${data.id}" style="display:none;"></div>
+      </div>
+    `;
+    commentList.appendChild(div);
+    if (isReply) {
+  addReply(form.dataset.replyTo, data);
+  updateCommentCount(articleId); // <--- update after reply
+} else {
+  addComment(articleId, data);
+}
+
+    // If toggle button doesn't exist yet, create it
+  let toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${parentId}']`);
+  if (!toggleBtn) {
+    toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'toggle-replies-btn';
+    toggleBtn.dataset.parentId = parentId;
+    // Insert the toggle button before the reply list
+    replyList.parentElement.insertBefore(toggleBtn, replyList);
+  }
+    updateReplyToggle(data.id);
+  }
+
+  function addReply(parentId, data) {
+    const replyList = document.getElementById(`replies-${parentId}`);
+    if (!replyList) return;
+
+    const div = document.createElement('div');
+    div.className = 'reply-row';
     div.dataset.replyId = data.id;
 
     div.innerHTML = `
       ${data.profile_image 
         ? `<img class="reply-avatar" src="${data.profile_image}" alt="${escapeHtml(data.author)}">`
-        : `<div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>`
-      }
+        : `<div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
 
       <div class="reply-container">
         <div class="reply-card">
@@ -408,31 +739,21 @@ function addReply(parentId, data){
             <strong>${escapeHtml(data.author)}</strong>
             <span class="reply-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
           </div>
-
-          ${data.parent_author 
+          ${data.parent_author
             ? `<div class="reply-parent">
                  <span class="reply-parent-author">${escapeHtml(data.parent_author)}</span>
                  <span class="reply-body">${escapeHtml(data.body)}</span>
                </div>`
-            : `<div class="reply-body">${escapeHtml(data.body)}</div>`
-          }
+            : `<div class="reply-body">${escapeHtml(data.body)}</div>`}
         </div>
 
         <div class="reply-actions">
-          <button type="button" class="reply-link" 
-                  data-parent-id="${parentId}" 
-                  data-comment-author="${escapeHtml(data.author)}">
-            Reply
-          </button>
+          <button type="button" class="reply-link" data-parent-id="${parentId}" data-comment-author="${escapeHtml(data.author)}">Reply</button>
           <div class="reply-ellipsis">
             <i class="fa-solid fa-ellipsis"></i>
             <div class="reply-actions-menu" role="menu" aria-hidden="true">
-              <button class="edit-reply-btn" data-reply-id="${data.id}">
-                <i class="fa-solid fa-pen"></i> Edit
-              </button>
-              <button class="delete-reply-btn" data-reply-id="${data.id}">
-                <i class="fa-solid fa-trash"></i> Delete
-              </button>
+              <button class="edit-reply-btn" data-reply-id="${data.id}"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button class="delete-reply-btn" data-reply-id="${data.id}"><i class="fa-solid fa-trash"></i> Delete</button>
             </div>
           </div>
         </div>
@@ -440,239 +761,158 @@ function addReply(parentId, data){
     `;
 
     replyList.appendChild(div);
-    const toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${parentId}']`);
-    if(toggleBtn) toggleBtn.textContent = `Hide Replies (${replyList.children.length})`;
-
-    updateTimes();
+      // Ensure reply list is visible after adding a new reply
+  replyList.style.display = 'block';
+  
+    updateReplyToggle(parentId, true);
+    if (isReply) {
+  addReply(form.dataset.replyTo, data);
+  updateCommentCount(articleId); // <--- update after reply
+} else {
+  addComment(articleId, data);
 }
 
+  }
 
+  function initComments() {
+    if (window.kbmsCommentsInit) return;
+    window.kbmsCommentsInit = true;
 
-    // ---------- Add a top-level comment dynamically ----------
-  function addComment(articleId, data) {
-        const commentList = document.querySelector(`#comments-${articleId} .comment-list`);
-        if(!commentList) return;
+    const csrftoken = getCookie('csrftoken');
 
-        const div = document.createElement('div');
-        div.className = 'comment-row';
-        div.dataset.commentId = data.id;
+    // Toggle comment section
+    document.querySelectorAll('.toggle-comments-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.articleId;
+        const section = document.getElementById(`comments-${id}`);
+        if (!section) return;
+        const hidden = section.style.display === 'none' || !section.style.display;
+        section.style.display = hidden ? 'block' : 'none';
+        section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        if (hidden) updateTimes();
+      });
+    });
 
-        div.innerHTML = `
-            ${data.profile_image 
-                ? `<img class="comment-avatar" src="${data.profile_image}" alt="">`
-                : `<div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
-            <div class="comment-container">
-                <div class="comment-card">
-                    <div class="comment-meta">
-                        <span class="comment-user">${escapeHtml(data.username)}</span>
-                        <span class="comment-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
-                    </div>
-                    <div class="comment-body">${escapeHtml(data.body)}</div>
-                </div>
-                <div class="comment-actions">
-                    <button type="button" class="reply-link" data-comment-id="${data.id}" data-comment-author="${escapeHtml(data.username)}">Reply</button>
-                </div>
-                <button type="button" class="toggle-replies-btn" data-parent-id="${data.id}" style="display:none;">Show Replies (0)</button>
-                <div class="reply-list" id="replies-${data.id}" style="display:none;"></div>
-            </div>
-        `;
-        commentList.appendChild(div);
+    // Handle comment forms
+    document.querySelectorAll('.comment-form').forEach(form => {
+      if (form.dataset.bound) return;
+      form.dataset.bound = '1';
+      const input = form.querySelector('input[name="comment"]');
+      const sendBtn = form.querySelector('.comment-btn');
+      const replyingIndicator = form.querySelector('.replying-indicator');
+      const articleId = form.dataset.articleId;
 
-        // Update comment count
-        const countEl = document.getElementById(`comment-count-${articleId}`);
-        if(countEl) countEl.textContent = commentList.children.length + (commentList.children.length === 1 ? ' comment' : ' comments');
+      input.addEventListener('input', () => sendBtn.classList.toggle('visible', input.value.trim() !== ''));
 
-        updateTimes();
-    }
+      form.addEventListener('click', e => {
+        if (e.target.closest('.cancel-reply')) {
+          delete form.dataset.replyTo;
+          if (replyingIndicator) replyingIndicator.style.display = 'none';
+          input.placeholder = 'Write a comment...';
+          input.focus();
+        }
+      });
 
-    // ---------- Initialize comment system ----------
-   function initComments() {
-        if(window.kbmsCommentsInit) return;
-        window.kbmsCommentsInit = true;
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const body = input.value.trim();
+        if (!body) return;
+        sendBtn.disabled = true;
 
-        // Toggle comments section
-        document.querySelectorAll('.toggle-comments-btn').forEach(btn=>{
-            btn.addEventListener('click', ()=>{
-                const id = btn.dataset.articleId;
-                const section = document.getElementById(`comments-${id}`);
-                if(!section) return;
-                const hidden = section.style.display === 'none' || !section.style.display;
-                section.style.display = hidden ? 'block' : 'none';
-                section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
-                if(hidden) updateTimes();
-            });
-        });
+        const isReply = !!form.dataset.replyTo;
+        const url = isReply ? `/comments/reply/${form.dataset.replyTo}/` : `/comments/add/${articleId}/`;
 
-        // Handle comment forms
-        document.querySelectorAll('.comment-form').forEach(form => {
-            if (form.dataset.bound) return;
-            form.dataset.bound = '1';
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify({ body })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!data || !data.success) return;
 
-            const input = form.querySelector('input[name="comment"]');
-            const sendBtn = form.querySelector('.comment-btn');
-            const articleId = form.dataset.articleId;
-            const replyingIndicator = form.querySelector('.replying-indicator');
-            if (!input || !sendBtn || !articleId) return;
+          if (!data.author) data.author = "{{ request.user.username|escapejs }}";
 
-            input.addEventListener('input', () => sendBtn.classList.toggle('visible', input.value.trim() !== ''));
+          if (isReply) addReply(form.dataset.replyTo, data);
+          else addComment(articleId, data);
 
-            form.addEventListener('click', e => {
-                if (e.target.closest('.cancel-reply')) {
-                    delete form.dataset.replyTo;
-                    if (replyingIndicator) replyingIndicator.style.display = 'none';
-                    input.placeholder = 'Write a comment...';
-                    input.focus();
-                }
-            });
+          input.value = '';
+          sendBtn.classList.remove('visible');
+          delete form.dataset.replyTo;
+          if (replyingIndicator) replyingIndicator.style.display = 'none';
+        } catch (err) {
+          console.error(err);
+        } finally {
+          sendBtn.disabled = false;
+          updateTimes();
+        }
+      });
+    });
 
-            form.addEventListener('submit', async e => {
-                e.preventDefault();
-                const body = input.value.trim();
-                if (!body) return;
-                sendBtn.disabled = true;
+    // Delegated click listener for dynamic elements
+    document.addEventListener('click', e => {
 
-                try {
-                    const isReply = !!form.dataset.replyTo;
-                    const url = isReply ? `/comments/reply/${form.dataset.replyTo}/` : `/comments/add/${articleId}/`;
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
-                        body: JSON.stringify({ body })
-                    });
-                    const data = await res.json().catch(()=>({}));
-                    if (!data || (!data.success && !data.id)) return;
-
-                    if (isReply) addReply(form.dataset.replyTo, data);
-                    else addComment(articleId, data);
-
-                    input.value = '';
-                    sendBtn.classList.remove('visible');
-                    delete form.dataset.replyTo;
-                    if (replyingIndicator) replyingIndicator.style.display = 'none';
-
-                } catch (err) { console.error(err); }
-                finally { sendBtn.disabled = false; updateTimes(); }
-            });
-        });
-
-        // Delegated click for reply, toggle, edit, delete
-        document.addEventListener('click', async e => {
-            const csrftoken = getCookie('csrftoken');
-
-            // Toggle ellipsis menus
-            ['.comment-ellipsis', '.reply-ellipsis'].forEach(sel => {
-                const el = e.target.closest(sel);
-                if (el) {
-                    const menu = el.querySelector(sel === '.comment-ellipsis' ? '.actions-menu' : '.reply-actions-menu');
-                    document.querySelectorAll(sel === '.comment-ellipsis' ? '.actions-menu' : '.reply-actions-menu')
-                        .forEach(m => { if (m !== menu) m.style.display = 'none'; });
-                    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-                    return;
-                }
-            });
-
-            // Reply button
-               // Reply button
-// Reply button (supports buttons that use data-parent-id or data-comment-id)
-const replyBtn = e.target.closest('.reply-link');
-if (replyBtn) {
-    // prefer explicit parent id, fallback to comment id
-    const parentId = replyBtn.dataset.parentId || replyBtn.dataset.commentId;
-    const author = replyBtn.dataset.commentAuthor || replyBtn.dataset.commentAuthorName || '';
-
-    // debugging: uncomment if you need to see what's happening
-    // console.log('replyBtn clicked', { parentId, author, dataset: replyBtn.dataset });
-
-    if (!parentId) {
-        // no parent id — nothing to reply to
-        console.warn('Reply button clicked but no parent id found on button', replyBtn);
+      // Reply button
+      const replyBtn = e.target.closest('.reply-link');
+      if (replyBtn) {
+        const parentId = replyBtn.dataset.parentId || replyBtn.dataset.commentId;
+        const author = replyBtn.dataset.commentAuthor || 'user';
+        const form = replyBtn.closest('.comments-section')?.querySelector('.comment-form') || document.querySelector('.comment-form');
+        if (!form) return;
+        const input = form.querySelector('input[name="comment"]');
+        const replyingIndicator = form.querySelector('.replying-indicator');
+        form.dataset.replyTo = parentId;
+        if (replyingIndicator) {
+          replyingIndicator.style.display = 'block';
+          replyingIndicator.querySelector('.reply-to-name').textContent = author;
+        }
+        input.placeholder = `Replying to ${author}...`;
+        input.focus();
         return;
+      }
+
+      // Toggle replies
+      const toggleBtn = e.target.closest('.toggle-replies-btn');
+      if (toggleBtn) {
+        const parentId = toggleBtn.dataset.parentId;
+        const replyList = document.getElementById(`replies-${parentId}`);
+        if (!replyList) return;
+        // Read current state from dataset
+    const isOpen = toggleBtn.dataset.open === 'true';
+    
+    // Toggle
+    if (isOpen) {
+      replyList.style.display = 'none';
+      toggleBtn.textContent = `Show Replies (${replyList.children.length})`;
+      toggleBtn.dataset.open = 'false';
+    } else {
+      replyList.style.display = 'block';
+      toggleBtn.textContent = `Hide Replies (${replyList.children.length})`;
+      toggleBtn.dataset.open = 'true';
     }
-
-    const form = replyBtn.closest('.comments-section')?.querySelector('.comment-form') || document.querySelector('.comment-form');
-    if (!form) {
-        console.warn('Reply form not found for reply button', replyBtn);
-        return;
-    }
-
-    const input = form.querySelector('input[name="comment"]');
-    const replyingIndicator = form.querySelector('.replying-indicator');
-
-    // set the id the server expects (your fetch uses form.dataset.replyTo)
-    form.dataset.replyTo = parentId;
-
-    if (replyingIndicator) {
-        replyingIndicator.style.display = 'block';
-        replyingIndicator.querySelector('.reply-to-name').textContent = author || 'user';
-    }
-
-    input.placeholder = author ? `Replying to ${author}...` : 'Write a reply...';
-    input.focus();
     return;
-}
+  }
 
+      // Ellipsis toggle
+      const ellipsisIcon = e.target.closest('.comment-ellipsis i, .reply-ellipsis i');
+      if (ellipsisIcon) {
+        const menu = ellipsisIcon.parentElement.querySelector('[role="menu"]');
+        if (menu) {
+          const hidden = menu.getAttribute('aria-hidden') === 'true';
+          menu.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        }
+        return;
+      }
+    });
+  }
 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { initComments(); updateTimes(); });
+  } else {
+    initComments(); updateTimes();
+  }
 
-            // Toggle replies
-            const toggleBtn = e.target.closest('.toggle-replies-btn');
-            if (toggleBtn) {
-                const parentId = toggleBtn.dataset.parentId;
-                const replyList = document.getElementById(`replies-${parentId}`);
-                if (!replyList) return;
-                const hidden = replyList.style.display === 'none' || !replyList.style.display;
-                replyList.style.display = hidden ? 'block' : 'none';
-                toggleBtn.textContent = hidden ? `Hide Replies (${replyList.children.length})` : `Show Replies (${replyList.children.length})`;
-                return;
-            }
-
-            // Edit/Delete
-            const handleEditDelete = async (btnSelector, bodySelector, urlPrefix) => {
-                const btn = e.target.closest(btnSelector);
-                if (!btn) return false;
-                const row = btn.closest('.comment-row, .reply-row');
-                if (!row) return true;
-                const idKey = btnSelector.includes('reply') ? 'replyId' : 'commentId';
-                const id = btn.dataset[idKey];
-                const bodyEl = row.querySelector(bodySelector);
-                if (!bodyEl) return true;
-
-                if (btnSelector.includes('edit')) {
-                    const oldText = bodyEl.textContent.trim();
-                    const updated = prompt('Edit:', oldText);
-                    if (!updated || updated.trim() === '' || updated.trim() === oldText) return true;
-                    try {
-                        const res = await fetch(`${urlPrefix}${id}/`, {
-                            method:'POST',
-                            headers:{'X-CSRFToken': csrftoken,'Content-Type':'application/json'},
-                            body: JSON.stringify({body: updated.trim()})
-                        });
-                        const data = await res.json().catch(()=>({}));
-                        if (data.success) bodyEl.textContent = updated.trim();
-                    } catch(err){console.error(err);}
-                }
-
-                if (btnSelector.includes('delete')) {
-                    if(!confirm('Delete?')) return true;
-                    try {
-                        const res = await fetch(`${urlPrefix}${id}/`, {method:'POST', headers:{'X-CSRFToken':csrftoken}});
-                        const data = await res.json().catch(()=>({}));
-                        if (data.success) row.remove();
-                    } catch(err){console.error(err);}
-                }
-
-                return true;
-            };
-
-            ['.edit-btn','.delete-btn','.edit-reply-btn','.delete-reply-btn']
-                .forEach(sel => handleEditDelete(sel, sel.includes('reply') ? '.reply-body' : '.comment-body', '/comments/' + (sel.includes('edit')?'edit/':'delete/')));
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => { initComments(); updateTimes(); });
-    } else { initComments(); updateTimes(); }
-
-    setInterval(updateTimes, 30000);
+  setInterval(updateTimes, 30000);
 
 })();
-</script> 
+</script> {% endcomment %}

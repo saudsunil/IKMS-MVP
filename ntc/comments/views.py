@@ -36,16 +36,32 @@ def add_comment(request, article_id):
         body=body
     )
 
+    print(({
+    "success": True,
+    "id": comment.id,
+    "author": getattr(author, "name", str(author)),   # <-- add this
+    "username": getattr(author, "name", str(author)),
+    "profile_image": author.profile_image.url if author.profile_image else "",
+    "body": comment.body,
+    "created_at": comment.created_at.isoformat(),
+    "parent": None,              # MAIN COMMENT
+    "parent_author": "",         # No parent
+    "reply_count": comment.comment_set.count(),           # Main comment has 0 replies initially
+})
+)
     return JsonResponse({
-        "success": True,
-        "id": comment.id,
-        "username": getattr(author, "name", str(author)),
-        "profile_image": author.profile_image.url if author.profile_image else "",
-        "body": comment.body,
-        "created_at": comment.created_at.isoformat(),
-        "parent": None,              # MAIN COMMENT
-        "parent_author": "",         # No parent
-    })
+    "success": True,
+    "id": comment.id,
+    "author": getattr(author, "name", str(author)),   # <-- add this
+    "username": getattr(author, "name", str(author)),
+    "profile_image": author.profile_image.url if author.profile_image else "",
+    "body": comment.body,
+    "created_at": comment.created_at.isoformat(),
+    "parent": None,              # MAIN COMMENT
+    "parent_author": "",         # No parent
+    "reply_count": comment.comment_set.count(),            # Main comment has 0 replies initially
+})
+
 
 
 @login_required
@@ -87,18 +103,33 @@ def reply_comment(request, comment_id):
         parent=parent,
         body=body
     )
+   
+
+    print(({
+    "success": True,
+    "id": reply.id,
+    "author": getattr(reply.author, "name", str(reply.author)),
+    "username": getattr(reply.author, "name", str(reply.author)),
+    "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+    "body": reply.body,
+    "created_at": reply.created_at.isoformat(),
+    "parent": reply.parent.id,
+    "parent_author": reply.parent.author.name,
+    "reply_count": reply.parent.comment_set.count(),  # nested replies if any
+}))
 
     return JsonResponse({
-        "success": True,
-        "id": reply.id,
-        "author": author.name,
-        "profile_image": author.profile_image.url if getattr(author, "profile_image", None) else "",
-        "body": reply.body,
-        "created_at": reply.created_at.isoformat(),
-        "parent": parent.id,
-        "parent_author": parent.author.name, 
-         "parent_body": parent.body
-    })
+    "success": True,
+    "id": reply.id,
+    "author": getattr(reply.author, "name", str(reply.author)),
+    "username": getattr(reply.author, "name", str(reply.author)),
+    "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+    "body": reply.body,
+    "created_at": reply.created_at.isoformat(),
+    "parent": reply.parent.id,
+    "parent_author": reply.parent.author.name,
+    'reply_count': reply.parent.comment_set.count() 
+})
 
 
 @login_required

@@ -19,9 +19,10 @@
                    <span class="reply-parent-author">{{ r.parent.author.name }}</span>
             <span class="reply-body">{{ r.body }}</span>
       </div>
-   
+        {% else %}
+        <div class="reply-body">{{ r.body }}</div>
       {% endif %}
-      {% comment %} <div class="reply-body">{{ r.body }}</div> {% endcomment %}
+
     </div>
     <div class="reply-actions">
       <button type="button" class="reply-link" data-parent-id="{{ r.id }}" data-comment-author="{{ r.author.name }}">Reply</button>
