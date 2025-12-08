@@ -63,19 +63,14 @@ def add_comment(request, article_id):
 })
 
 
-
 @login_required
 @require_POST
 def reply_comment(request, comment_id):
-    """
-    Accepts either form-encoded or JSON body. Prevents near-duplicate replies
-    from being created by the same author with identical text within 5 seconds.
-    """
     parent = get_object_or_404(Comment, id=comment_id)
     article = parent.article
     author = request.user.employee
 
-    # support both JSON and form-encoded payloads
+    # get body
     body = ""
     if request.content_type and "application/json" in request.content_type:
         try:
@@ -89,7 +84,7 @@ def reply_comment(request, comment_id):
     if not body:
         return JsonResponse({"success": False, "error": "Empty reply not allowed"}, status=400)
 
-    # Prevent duplicate replies within short window (increase window to 5s)
+    # Prevent near-duplicate replies
     recent_reply = Comment.objects.filter(
         article=article, parent=parent, author=author, body=body
     ).order_by("-created_at").first()
@@ -97,39 +92,39 @@ def reply_comment(request, comment_id):
     if recent_reply and (timezone.now() - recent_reply.created_at).total_seconds() < 5:
         return JsonResponse({"success": False, "error": "Duplicate reply detected"}, status=400)
 
+    # ATTACH to the exact parent clicked, not always top-level
     reply = Comment.objects.create(
         article=article,
         author=author,
         parent=parent,
         body=body
     )
-   
+    print( ({
+        "success": True,
+        "id": reply.id,
+        "author": getattr(reply.author, "name", str(reply.author)),
+        "username": getattr(reply.author, "name", str(reply.author)),
+        "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+        "body": reply.body,
+        "created_at": reply.created_at.isoformat(),
+        "parent": parent.id,
+        "parent_author": parent.author.name,
+        "reply_count": parent.comment_set.count()
+    }))
 
-    print(({
-    "success": True,
-    "id": reply.id,
-    "author": getattr(reply.author, "name", str(reply.author)),
-    "username": getattr(reply.author, "name", str(reply.author)),
-    "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
-    "body": reply.body,
-    "created_at": reply.created_at.isoformat(),
-    "parent": reply.parent.id,
-    "parent_author": reply.parent.author.name,
-    "reply_count": reply.parent.comment_set.count(),  # nested replies if any
-}))
-
+    # Send the immediate parent's author
     return JsonResponse({
-    "success": True,
-    "id": reply.id,
-    "author": getattr(reply.author, "name", str(reply.author)),
-    "username": getattr(reply.author, "name", str(reply.author)),
-    "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
-    "body": reply.body,
-    "created_at": reply.created_at.isoformat(),
-    "parent": reply.parent.id,
-    "parent_author": reply.parent.author.name,
-    'reply_count': reply.parent.comment_set.count() 
-})
+        "success": True,
+        "id": reply.id,
+        "author": getattr(reply.author, "name", str(reply.author)),
+        "username": getattr(reply.author, "name", str(reply.author)),
+        "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+        "body": reply.body,
+        "created_at": reply.created_at.isoformat(),
+        "parent": parent.id,
+        "parent_author": parent.author.name,
+        "reply_count": parent.comment_set.count()
+    })
 
 
 @login_required

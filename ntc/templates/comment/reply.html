@@ -1,48 +1,51 @@
 {% for r in replies %}
- 
 <div class="reply-row" data-reply-id="{{ r.id }}">
-  {% if r.author.profile_image %}
-    <img class="reply-avatar" src="{{ r.author.profile_image.url }}" alt="{{ r.author.name }}">
-  {% else %}
-    <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
-  {% endif %}
-  
-      
-  <div class="reply-container">
+   <div class="reply-container">
     <div class="reply-card">
-      <div class="reply-meta">
-        <strong>{{ r.author.name }}</strong>
-        <span class="reply-time" data-time="{{ r.created_at.isoformat }}">{{ r.created_at }}</span>
-      </div>
-      {% if r.parent %}
-      <div class="reply-parent">
-                   <span class="reply-parent-author">{{ r.parent.author.name }}</span>
+
+        <div class="reply-meta">
+            <strong>{{ r.author.name }}</strong>
+            <span class="reply-time" data-time="{{ r.created_at.isoformat }}">
+                {{ r.created_at }}
+            </span>
+        </div>
+
+        {% if r.parent %}
+        <!-- Mentioned user -->
+        <div class="reply-parent">
+            <span class="reply-parent-author">@{{ r.parent.author.name }}</span>
             <span class="reply-body">{{ r.body }}</span>
-      </div>
+        </div>
         {% else %}
         <div class="reply-body">{{ r.body }}</div>
-      {% endif %}
+        {% endif %}
 
     </div>
-    <div class="reply-actions">
-      <button type="button" class="reply-link" data-parent-id="{{ r.id }}" data-comment-author="{{ r.author.name }}">Reply</button>
- <div class="reply-ellipsis">
-                  <i class="fa-solid fa-ellipsis"></i>
-                  <div class="reply-actions-menu" role="menu" aria-hidden="true">
-                    <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
-                  </div>
-                </div>
-              </div>
 
-  
+    <div class="reply-actions">
+        <button type="button" class="reply-link"
+                data-parent-id="{{ r.id }}"
+                data-comment-author="{{ r.author.name }}">
+            Reply
+        </button>
+
+        <div class="reply-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="reply-actions-menu" role="menu" aria-hidden="true">
+                <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    </div>
   </div>
 </div>
 {% endfor %}
+
 <style>
   .reply-row {
   display: flex;
-  margin-bottom: 30px;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .reply-avatar {
@@ -50,15 +53,16 @@
   height: 36px;
   border-radius: 50%;
   margin-right: 8px;
+  margin-left:-5px
 }
 
 .reply-container {
   flex: 1;
+  margin-left:
 }
 
-.nested-reply-list {
-  margin-left: 40px; /* indent for nested replies */
-  border-left: 1px solid #eee;
-  padding-left: 10px;
-}
+
+
+
+
 </style>
