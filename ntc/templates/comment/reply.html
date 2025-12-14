@@ -1,4 +1,4 @@
-{% for r in replies %}
+{% comment %} {% for r in replies %}
 <div class="reply-row" data-reply-id="{{ r.id }}">
    <div class="reply-container">
     <div class="reply-card">
@@ -13,7 +13,7 @@
         {% if r.parent %}
         <!-- Mentioned user -->
         <div class="reply-parent">
-            <span class="reply-parent-author">@{{ r.parent.author.name }}</span>
+            <span class="reply-parent-author">{{ r.parent.author.name }}</span>
             <span class="reply-body">{{ r.body }}</span>
         </div>
         {% else %}
@@ -65,4 +65,46 @@
 
 
 
-</style>
+</style> {% endcomment %}
+
+<div class="reply-row" data-reply-id="{{ reply.id }}" {% if reply.parent %}data-parent-id="{{ reply.parent.id }}"{% endif %}>
+  {% if reply.author.profile_image %}
+    <img class="reply-avatar" src="{{ reply.author.profile_image.url }}" alt="{{ reply.author.name }}">
+  {% else %}
+    <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
+  {% endif %}
+
+  <div class="reply-container">
+    <div class="reply-card">
+      <div class="reply-meta">
+        <strong>{{ reply.author.name }}</strong>
+        <span class="reply-time" data-time="{{ reply.created_at.isoformat }}">{{ reply.created_at }}</span>
+      </div>
+
+      {% if reply.parent %}
+        <div class="reply-parent">
+          <span class="reply-parent-author">{{ reply.parent.author.name }}</span>
+          <span class="reply-body">{{ reply.body }}</span>
+        </div>
+      {% else %}
+        <div class="reply-body">{{ reply.body }}</div>
+      {% endif %}
+    </div>
+
+    <div class="reply-actions">
+      <button class="reply-link"
+              data-parent-id="{{ reply.id }}"
+              data-comment-author="{{ reply.author.name }}">
+        Reply
+      </button>
+
+      <div class="reply-ellipsis">
+        <i class="fa-solid fa-ellipsis"></i>
+        <div class="reply-actions-menu" role="menu" aria-hidden="true">
+          <button class="edit-reply-btn" data-reply-id="{{ reply.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+          <button class="delete-reply-btn" data-reply-id="{{ reply.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
