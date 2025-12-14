@@ -1,4 +1,4 @@
-<!-- Comments Toggle Button -->
+ {% comment %} <!-- Comments Toggle Button -->
 <div class="toggle-comments-btn" data-article-id="{{ article.id }}">
   <div class="comments-toggle">
     <i class="fa-solid fa-comment"></i>
@@ -10,20 +10,17 @@
 </div>
 
 <!-- Comments Section -->
-
-<div class="comments-section" id="comments-{{ article.id }}" aria-hidden="true" style="display:none; background:white;">
+<div class="comments-section" id="comments-{{ article.id }}" data-article-id="{{ article.id }}" aria-hidden="true" style="display:none; background:white;">
   <div class="comment-list">
     {% for c in article.top_comments %}
     <div class="comment-row" data-comment-id="{{ c.id }}">
-      
-      <!-- Avatar -->
+
       {% if c.author.profile_image %}
         <img class="comment-avatar" src="{{ c.author.profile_image.url }}" alt="{{ c.author.name }}">
       {% else %}
         <div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>
       {% endif %}
 
-      <!-- Comment Container -->
       <div class="comment-container">
         <div class="comment-card">
           <div class="comment-meta">
@@ -34,7 +31,12 @@
         </div>
 
         <div class="comment-actions">
-          <button type="button" class="reply-link" data-comment-id="{{ c.id }}" data-comment-author="{{ c.author.name }}">Reply</button>
+          <button type="button" class="reply-link"
+                  data-comment-id="{{ c.id }}"
+                  data-comment-author="{{ c.author.name }}">
+            Reply
+          </button>
+
           <div class="comment-ellipsis">
             <i class="fa-solid fa-ellipsis"></i>
             <div class="actions-menu" role="menu" aria-hidden="true">
@@ -44,56 +46,55 @@
           </div>
         </div>
 
-        <!-- Replies -->
-        {% if c.comment_set.exists %}
-        <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
-   Show Replies({{ c.comment_set.count }})
-        </button>
-        <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
-          {% for r in c.comment_set.all %}
-          <div class="reply-row" data-reply-id="{{ r.id }}">
-            
-            {% if r.author.profile_image %}
-              <img class="reply-avatar" src="{{ r.author.profile_image.url }}" alt="{{ r.author.name }}">
-            {% else %}
-              <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
-            {% endif %}
+        {% with replies=c.all_replies %}
+        {% if replies %}
+          <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
+            Show Replies ({{ replies|length }})
+          </button>
 
-            <div class="reply-container">
-              <div class="reply-card">
-
-    <div class="reply-meta">
-        <strong>{{ r.author.name }}</strong>
-        <span class="reply-time" data-time="{{ r.created_at.isoformat }}">{{ r.created_at }}</span>
-    </div>
-
-    {% if r.parent %}
-        <div class="reply-parent">
-            <span class="reply-parent-author">{{ r.parent.author.name }}</span>
-            <span class="reply-body">{{ r.body }}</span>
-        </div>
-    {% endif %}
-
-</div>
-
-
-              <div class="reply-actions">
-<button type="button"class="reply-link" data-parent-id="{{ r.parent.id }}"data-comment-author="{{ r.author.name }}">Reply</button>
-
-                <div class="reply-ellipsis">
-                  <i class="fa-solid fa-ellipsis"></i>
-                  <div class="reply-actions-menu" role="menu" aria-hidden="true">
-                    <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+          <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
+            {% for r in replies %}
+            <div class="reply-row" data-reply-id="{{ r.id }}">
+              <div class="reply-container">
+                <div class="reply-card">
+                  <div class="reply-meta">
+                    <strong>{{ r.author.name }}</strong>
+                    <span class="reply-time" data-time="{{ r.created_at.isoformat }}">
+                        {{ r.created_at }}
+                    </span>
                   </div>
+
+                  {% if r.parent %}
+                  <div class="reply-parent">
+                      <span class="reply-parent-author">{{ r.parent.author.name }}</span>
+                      <span class="reply-body">{{ r.body }}</span>
+                  </div>
+                  {% else %}
+                  <div class="reply-body">{{ r.body }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="reply-actions">
+                    <button type="button" class="reply-link"
+                            data-parent-id="{{ r.id }}"
+                            data-comment-author="{{ r.author.name }}">
+                        Reply
+                    </button>
+
+                    <div class="reply-ellipsis">
+                        <i class="fa-solid fa-ellipsis"></i>
+                        <div class="reply-actions-menu" role="menu" aria-hidden="true">
+                            <button class="edit-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="delete-reply-btn" data-reply-id="{{ r.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </div>
                 </div>
               </div>
-
             </div>
+            {% endfor %}
           </div>
-          {% endfor %}
-        </div>
         {% endif %}
+        {% endwith %}
 
       </div>
     </div>
@@ -117,6 +118,7 @@
     </div>
   </form>
 </div>
+
 <!-- Font Awesome (keep only once on page) --> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 /* --- Comments Section --- */
@@ -209,6 +211,7 @@
 }
 .reply-body{
   margin-left:2px;
+  display:inline;
 }
 
 .reply-parent {
@@ -220,12 +223,14 @@
     flex-wrap: wrap;
 }
 
-.reply-parent-author {
+.reply-parent-author{
     font-weight: 600;
     font-size: 13px;
     color: #222;
     margin-top:4px;
+  
 }
+
 
 .comment-actions, .reply-actions {
   display: flex;
@@ -343,6 +348,700 @@
 }
 </style>
 
+
+<script>
+(function () {
+  /* ----------------- Helpers ----------------- */
+  function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : [];
+    for (const c of cookies) if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
+    return null;
+  }
+  function escapeHtml(s) {
+    if (!s && s !== 0) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+  function timeAgo(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '';
+    const sec = Math.floor((Date.now() - d) / 1000);
+    if (sec < 5) return 'Just now';
+    if (sec < 60) return sec + 's';
+    const m = Math.floor(sec / 60);
+    if (m < 60) return m + 'm';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h';
+    const days = Math.floor(h / 24);
+    if (days < 30) return days + 'd';
+    return Math.floor(days/30) + 'm';
+  }
+  function updateTimes() {
+    document.querySelectorAll('.comment-time, .reply-time').forEach(el => {
+      const t = el.dataset.time;
+      if (t) el.textContent = timeAgo(t);
+    });
+  }
+
+  /* ----------------- Count logic ----------------- */
+  // Count = number of main comment rows + all reply-row elements inside that article section
+  function updateCommentCount(articleId) {
+    const container = document.querySelector(`#comments-${articleId} .comment-list`);
+    const countEl = document.getElementById(`comment-count-${articleId}`);
+    if (!container || !countEl) return;
+    const mainCount = container.querySelectorAll('.comment-row').length;
+    const replyCount = container.querySelectorAll('.reply-row').length;
+    const total = mainCount + replyCount;
+    countEl.textContent = total + (total === 1 ? ' comment' : ' comments');
+  }
+
+  /* ----------------- Toggle (Show/Hide Replies) ----------------- */
+  // Ensures a toggle button exists for the top-level comment with id=parentId (main comment id).
+  // If replies are nested under replies, we still tie the top-level toggle to the top-level comment.
+  function ensureTopToggleForComment(topCommentId) {
+    const topCommentRow = document.querySelector(`.comment-row[data-comment-id='${topCommentId}']`);
+    if (!topCommentRow) return null;
+    let toggle = topCommentRow.querySelector(`.toggle-replies-btn[data-parent-id='${topCommentId}']`);
+    const replyList = document.getElementById(`replies-${topCommentId}`);
+    const cnt = replyList ? replyList.querySelectorAll('.reply-row').length : 0;
+
+    if (!toggle && cnt > 0) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'toggle-replies-btn';
+      toggle.dataset.parentId = topCommentId;
+      // insert toggle before the reply list (same as template placement)
+      replyList.parentElement.insertBefore(toggle, replyList);
+    }
+    if (!toggle) return null;
+
+    if (cnt === 0) {
+      toggle.style.display = 'none';
+      replyList.style.display = 'none';
+      toggle.dataset.open = 'false';
+      toggle.textContent = '';
+    } else {
+      toggle.style.display = 'inline-block';
+      const isOpen = replyList.style.display === 'block';
+      toggle.dataset.open = isOpen ? 'true' : 'false';
+      toggle.textContent = isOpen ? `Hide Replies (${cnt})` : `Show Replies (${cnt})`;
+    }
+    return toggle;
+  }
+
+  /* ----------------- DOM insertion helpers ----------------- */
+  // Add a main comment (structure matches your template)
+  function addMainCommentDOM(articleId, data) {
+    const commentList = document.querySelector(`#comments-${articleId} .comment-list`);
+    if (!commentList) return;
+
+    // remove "No comments yet" placeholder if present
+    const noComment = commentList.querySelector('.no-comment');
+    if (noComment) noComment.remove();
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'comment-row';
+    wrapper.dataset.commentId = data.id;
+
+    wrapper.innerHTML = `
+      ${data.profile_image ? `<img class="comment-avatar" src="${data.profile_image}" alt="${escapeHtml(data.author)}">`
+                            : `<div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
+      <div class="comment-container">
+        <div class="comment-card">
+          <div class="comment-meta">
+            <span class="comment-user">${escapeHtml(data.author)}</span>
+            <span class="comment-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+          </div>
+          <div class="comment-body">${escapeHtml(data.body)}</div>
+        </div>
+
+        <div class="comment-actions">
+          <button type="button" class="reply-link" data-parent-id="${data.id}" data-comment-author="${escapeHtml(data.author)}">Reply</button>
+          <div class="comment-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="actions-menu" role="menu" aria-hidden="true">
+              <button class="edit-btn" data-comment-id="${data.id}"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button class="delete-btn" data-comment-id="${data.id}"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="reply-list" id="replies-${data.id}" style="display:none;"></div>
+      </div>
+    `;
+    // prepend so newest main comment shows first (matches previous behavior)
+    commentList.prepend(wrapper);
+
+    // ensure toggle (will be hidden because no replies yet)
+    ensureTopToggleForComment(data.id);
+
+    // update counts
+    updateCommentCount(articleId);
+  }
+
+  // Add a reply. parentId may be a main comment id or a reply id (nested reply).
+  // We append the reply under the parent's reply-list (create one if needed).
+  // We also update the top-level comment's toggle and the global comment count.
+  function addReplyDOM(parentId, data, openAfterAdd = true, ) {
+    // find parent element (could be comment-row or reply-row)
+   // find parent element (could be comment-row or reply-row)
+let parentEl = document.querySelector(`.comment-row[data-comment-id='${parentId}']`) ||
+               document.querySelector(`.reply-row[data-reply-id='${parentId}']`);
+
+if (!parentEl) return console.warn('Parent not found', parentId);
+
+// Determine which container to append to
+
+
+  // Always append replies to the nearest top-level comment's reply-list
+    let replyList;
+    if (parentEl.classList.contains('comment-row')) {
+        replyList = parentEl.querySelector('.reply-list');
+    } else {
+        // parent is a reply, append to top-level reply-list
+        replyList = parentEl.closest('.comment-row')?.querySelector('.reply-list');
+    }
+
+    if (!replyList) return;
+
+
+
+// build the reply-row
+const item = document.createElement('div');
+item.className = 'reply-row';
+item.dataset.replyId = data.id;
+item.innerHTML = `
+  ${data.profile_image ? `<img class="reply-avatar" src="${data.profile_image}" alt="${escapeHtml(data.author)}">`
+                        : `<div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>`}
+  <div class="reply-container">
+    <div class="reply-card">
+      <div class="reply-meta">
+        <strong>${escapeHtml(data.author)}</strong>
+        <span class="reply-time" data-time="${data.created_at}">${timeAgo(data.created_at)}</span>
+      </div>
+ <div class="reply-body">${data.parent_author ? `<span class="reply-parent-author">@${escapeHtml(data.parent_author)}</span> ` : ''}${escapeHtml(data.body)}</div>
+    </div>
+    <div class="reply-actions">
+      <button type="button" class="reply-link" data-parent-id="${data.id}" data-comment-author="${escapeHtml(data.author)}">Reply</button>
+    </div>
+     <div class="reply-ellipsis">
+    <i class="fa-solid fa-ellipsis"></i>
+    <div class="reply-actions-menu" role="menu" aria-hidden="true">
+      <button class="edit-reply-btn" data-reply-id="${data.id}"><i class="fa-solid fa-pen"></i> Edit</button>
+      <button class="delete-reply-btn" data-reply-id="${data.id}"><i class="fa-solid fa-trash"></i> Delete</button>
+    </div>
+  </div>
+  </div>
+`;
+replyList.appendChild(item);
+
+// show the reply list
+replyList.style.display = 'block';
+
+
+    // open the reply list if requested
+    if (openAfterAdd) replyList.style.display = 'block';
+
+    // update top-level toggle for the *main* comment that owns this thread
+ // Update top-level toggle
+    ensureTopToggleForComment(parentEl.closest('.comment-row').dataset.commentId);
+
+    // update overall comment count for the article
+    const articleId = replyList.closest('.comments-section')?.dataset.articleId;
+    if (articleId) updateCommentCount(articleId);
+  }
+
+  /* ----------------- Initialization & events ----------------- */
+  function initComments() {
+    if (window.kbmsCommentsInit) return;
+    window.kbmsCommentsInit = true;
+    const csrftoken = getCookie('csrftoken');
+
+    // initial sync: update counts and ensure toggles for server-rendered replies
+    document.querySelectorAll('.comments-section').forEach(section => {
+      const articleId = section.dataset.articleId;
+      if (articleId) updateCommentCount(articleId);
+      section.querySelectorAll('.reply-list').forEach(list => {
+        const pid = list.id?.replace('replies-', '');
+        if (pid) ensureTopToggleForComment(pid);
+      });
+    });
+
+    // toggle whole comment section
+    document.querySelectorAll('.toggle-comments-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.articleId;
+        const section = document.getElementById(`comments-${id}`);
+        if (!section) return;
+        const hidden = section.style.display === 'none' || !section.style.display;
+        section.style.display = hidden ? 'block' : 'none';
+        section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        if (hidden) updateTimes();
+      });
+    });
+
+    // bind forms
+    document.querySelectorAll('.comment-form').forEach(form => {
+      if (form.dataset.bound) return;
+      form.dataset.bound = '1';
+      const input = form.querySelector('input[name="comment"]');
+      const sendBtn = form.querySelector('.comment-btn');
+      const replyingIndicator = form.querySelector('.replying-indicator');
+      const articleId = form.dataset.articleId;
+
+      if (input && sendBtn) {
+        input.addEventListener('input', () => sendBtn.classList.toggle('visible', input.value.trim() !== ''));
+      }
+
+      // cancel reply
+      form.addEventListener('click', e => {
+        if (e.target.closest('.cancel-reply')) {
+          delete form.dataset.replyTo;
+          if (replyingIndicator) {
+            replyingIndicator.style.display = 'none';
+            replyingIndicator.querySelector('.reply-to-name').textContent = '';
+          }
+          if (input) {
+            input.placeholder = 'Write a comment...';
+            input.focus();
+          }
+        }
+      });
+
+      // submit main or reply
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!input) return;
+        const body = input.value.trim();
+        if (!body) return;
+        sendBtn.disabled = true;
+
+        const isReply = !!form.dataset.replyTo;
+        const targetId = form.dataset.replyTo;
+        const url = isReply ? `/comments/reply/${targetId}/` : `/comments/add/${articleId}/`;
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify({ body })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!data || !data.success) return;
+
+          // normalize author field
+          if (!data.author && data.username) data.author = data.username;
+
+        if (isReply) {
+  // server returns `parent` (top-level comment id) — use it to insert reply.
+        const insertParent = data.parent ? String(data.parent) : String(form.dataset.replyTo);
+        addReplyDOM(insertParent, data, true);
+        } else {
+        addMainCommentDOM(articleId, data);
+        }
+
+
+          // clear form & UI
+          form.reset();
+          delete form.dataset.replyTo;
+          if (replyingIndicator) {
+            replyingIndicator.style.display = 'none';
+            replyingIndicator.querySelector('.reply-to-name').textContent = '';
+          }
+          input.placeholder = 'Write a comment...';
+          input.focus();
+        } catch (err) {
+          console.error(err);
+        } finally {
+          sendBtn.disabled = false;
+          updateTimes();
+        }
+      });
+    });
+
+    // delegated click handler: reply link, toggle replies, ellipsis
+    document.addEventListener('click', e => {
+      // reply link
+      const r = e.target.closest('.reply-link');
+      if (r) {
+        const parentId = r.dataset.parentId || r.dataset.commentId;
+        const author = r.dataset.commentAuthor || r.dataset.commentAuthor || 'user';
+        // choose nearest comment form within same comments-section
+        const section = r.closest('.comments-section');
+        const form = section?.querySelector('.comment-form') || document.querySelector('.comment-form');
+        if (!form) return;
+        form.dataset.replyTo = parentId;
+        const replyingIndicator = form.querySelector('.replying-indicator');
+        if (replyingIndicator) {
+          replyingIndicator.style.display = 'block';
+          replyingIndicator.querySelector('.reply-to-name').textContent = author;
+        }
+        const input = form.querySelector('input[name="comment"]');
+        if (input) {
+          input.placeholder = `Replying to ${author}...`;
+          input.focus();
+        }
+        return;
+      }
+
+      // toggle replies (top-level toggles only)
+      const toggle = e.target.closest('.toggle-replies-btn');
+      if (toggle) {
+        const pid = toggle.dataset.parentId;
+        const replyList = document.getElementById(`replies-${pid}`);
+        if (!replyList) return;
+        const isOpen = replyList.style.display === 'block';
+        replyList.style.display = isOpen ? 'none' : 'block';
+        const count = replyList.querySelectorAll('.reply-row').length;
+        toggle.dataset.open = isOpen ? 'false' : 'true';
+        toggle.textContent = isOpen ? `Show Replies (${count})` : `Hide Replies (${count})`;
+        return;
+      }
+
+      // ellipsis menus
+      const ell = e.target.closest('.comment-ellipsis i, .reply-ellipsis i');
+      if (ell) {
+        const menu = ell.parentElement.querySelector('[role="menu"]');
+        if (menu) {
+          const hidden = menu.getAttribute('aria-hidden') === 'true';
+          menu.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        }
+        return;
+      }
+    });
+  }
+
+  // run
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { initComments(); updateTimes(); });
+  } else {
+    initComments(); updateTimes();
+  }
+  setInterval(updateTimes, 30000);
+})();
+</script>  {% endcomment %}
+
+<!-- Comments Toggle Button -->
+{% load comment_tags %}
+
+<div class="toggle-comments-btn" data-article-id="{{ article.id }}">
+  <div class="comments-toggle">
+    <i class="fa-solid fa-comment"></i>
+    <span class="comments-label">Comments</span>
+    <span class="comment-count" id="comment-count-{{ article.id }}">
+      {{ article.comments.count }} comment{% if article.comments.count != 1 %}s{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Comments Section -->
+
+<div class="comments-section" id="comments-{{ article.id }}" aria-hidden="true" style="display:none; background:white;">
+  <div class="comment-list">
+    {% for c in article.top_comments %}
+    <div class="comment-row" data-comment-id="{{ c.id }}">
+      
+      <!-- Avatar -->
+      {% if c.author.profile_image %}
+        <img class="comment-avatar" src="{{ c.author.profile_image.url }}" alt="{{ c.author.name }}">
+      {% else %}
+        <div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>
+      {% endif %}
+
+      <!-- Comment Container -->
+      <div class="comment-container">
+        <div class="comment-card">
+          <div class="comment-meta">
+            <span class="comment-user">{{ c.author.name }}</span>
+            <span class="comment-time" data-time="{{ c.created_at.isoformat }}">{{ c.created_at }}</span>
+          </div>
+          <div class="comment-body">{{ c.body }}</div>
+        </div>
+
+        <div class="comment-actions">
+          <button type="button" class="reply-link" data-comment-id="{{ c.id }}" data-comment-author="{{ c.author.name }}">Reply</button>
+          <div class="comment-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="actions-menu" role="menu" aria-hidden="true">
+              <button class="edit-btn" data-comment-id="{{ c.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button class="delete-btn" data-comment-id="{{ c.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Replies -->
+      {# inside the for c in article.top_comments loop #}
+{% if c.comment_set.exists %}
+  
+
+  <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
+    {% for r in c|all_replies_flat %}
+      {% include "comment/reply.html" with reply=r %}
+    {% endfor %}
+  </div>
+  <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}">
+    Show Replies ({{ c|all_replies_flat|length }})
+  </button>
+{% endif %}
+
+
+      </div>
+    </div>
+    {% empty %}
+      <div class="no-comment text-center">No comments yet</div>
+    {% endfor %}
+  </div>
+
+  <!-- New Comment Form -->
+  <form class="comment-form" data-article-id="{{ article.id }}">
+    {% csrf_token %}
+    <div class="replying-indicator" style="display:none; font-size:13px; color:#555; margin-bottom:6px;">
+      Replying to <span class="reply-to-name" style="font-weight:600"></span>
+      &nbsp;
+      <button type="button" class="cancel-reply" style="background:none;border:none;color:#888;cursor:pointer;padding:0;margin-left:8px;">Cancel</button>
+    </div>
+
+    <div class="input-wrapper">
+      <input type="text" name="comment" placeholder="Write a comment..." autocomplete="off" required>
+      <button class="comment-btn" type="submit" title="Post"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </form>
+</div>
+<!-- Font Awesome (keep only once on page) --> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* --- Comments Section --- */
+.comments-section {
+  display: none;
+  border-top: 1px solid #ddd;
+  padding: 12px 10px;
+  background: #f7f7f7;
+}
+
+/* Comment Toggle Button */
+.toggle-comments-btn { width: 100%; background: transparent; border: none; padding: 0; cursor: pointer; }
+.comments-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 6px; font-size: 15px; color: #333; border-top: 1px solid #ddd; position: relative; }
+.comment-count { position: absolute; top: 0; right: 10px; font-size: 12px; color: #666; }
+
+/* Comment List */
+.comment-list { max-height: 360px; overflow-y: auto; margin-bottom: 10px; padding-right: 6px; }
+
+
+
+
+
+
+/* --- Comments / Replies Auto-width Cards --- */
+.comment-row, .reply-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;    /* spacing between avatar & card */
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+ 
+}
+.reply-row{
+  margin-left: -47px;
+  margin-top:10px;
+}
+
+.comment-container, .reply-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  flex: 1 1 auto;     /* grow/shrink as needed */
+  min-width: 0;       /* critical for flex auto-shrink */
+}
+
+/* Comment Card auto width based on text */
+.comment-card, .reply-card {
+  display: inline-flex;     /* shrink to fit text */
+  flex-direction: column;
+  background: #fff;
+  padding: 0px 0px 0px 0px;
+ 
+  word-break: break-word;
+  max-width: 100%;          /* never exceed container */
+  width: fit-content;       /* shrink to fit text */
+  border:none;
+  background:none;
+}
+.comment-meta, .reply-meta {
+  display: flex;
+ 
+  align-items: center;
+  gap: 6px;
+
+}
+
+.comment-user, .reply-user, .reply-meta strong {
+  font-weight: 600;
+  font-size: 13px;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+
+.comment-time, .reply-time {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+ 
+
+}
+
+.comment-body, .reply-body {
+  font-size: 13px;
+  line-height: 1.35;
+  word-break: break-word;
+  white-space: pre-wrap;  /* wrap naturally */
+  margin-top: 2px;
+
+}
+.comment-body{
+  margin-top:-3px;
+}
+.reply-body{
+  margin-left:2px;
+}
+
+.reply-parent {
+    font-size: 13px;
+ 
+    color: #444;
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    margin-top:-3px;
+}
+
+.reply-parent-author {
+    font-weight: 500;
+    font-size: 13px;
+    color: #0d6efd;;
+    margin-top:0px;
+}
+
+.comment-actions, .reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 0px;
+  flex-wrap: wrap;
+  border:none; 
+  background:none;
+  border-style:none;
+  align-items: center;
+}
+
+
+.reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding-left: 45px;
+  width: 100%;
+}
+/* Avatar: fixed width */
+/* Avatar takes 30% of row */
+.comment-avatar, .reply-avatar {
+  width: 35px;           /* 30% of parent row *     /* optional max size */
+  height: 35px;         /* auto height to keep aspect */
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  flex-shrink:0;
+  margin-top:2px;
+}
+.comment-avatar{ margin-left:10px;}
+
+/* Container takes remaining 70% */
+.comment-container, .reply-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 70%;        /* grow/shrink as needed */
+  min-width: 0;          /* allows text to wrap */
+}
+
+.comment-ellipsis, .reply-ellipsis {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+  cursor:pointer;
+  margin-top:3px;
+  color:#555;
+  font-size:12px;
+}
+
+.actions-menu, .reply-actions-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 1200;
+  min-width: 120px;
+  margin-top: 4px;
+}
+
+.actions-menu button, .reply-actions-menu button {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #555;
+  text-align: left;
+}
+
+.actions-menu button:hover, .reply-actions-menu button:hover { background: #f5f5f5; }
+
+.reply-actions, .reply-link{
+  border: none;           /* remove border */
+  background: none;       /* remove background */
+  color: #555;         /* text color */
+  padding: 0;             /* remove default padding if needed */
+  font-size: 12px;        /* adjust font size */
+  cursor: pointer; 
+  line-height: 1; 
+  margin-left:0px;       /* pointer on hover */
+}
+
+.reply-list { display: flex; flex-direction: column; gap: 10px; padding-left: 45px; box-sizing: border-box; width: 100%; }
+
+/* Toggle Replies Button */
+.toggle-replies-btn { background:none; border:none; font-size:12px; color:black; margin-left:-6px; margin-top:-20x;   text-align: left;  }
+
+/* Input */
+.comment-form { width: 100%; margin-top: 8px; }
+.input-wrapper { position: relative; width: 100%; }
+.comment-form input[type="text"] { width: 100%; padding: 10px 12px; padding-right: 45px; border-radius: 20px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; outline:none; }
+.comment-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background:none; border:none; font-size: 18px; color:#999; cursor:pointer; display:none; }
+.comment-btn.visible { display: block; }
+
+/* Responsive */
+@media (max-width: 520px) {
+  .comment-list { max-height: 260px; }
+  .comment-avatar { margin-left: 6px; }
+  .reply-list { padding-left: 48px; }
+}
+</style>
+
 <script>
 (function() {
     // ---------- Helper functions ----------
@@ -385,16 +1084,58 @@
             if (t) el.textContent = timeAgo(t);
         });
     }
+function getTotalComments(articleId) {
+    const section = document.getElementById(`comments-${articleId}`);
+    if (!section) return 0;
 
-    // ---------- Add a reply dynamically ----------
-function addReply(parentId, data){
-    const replyList = document.getElementById(`replies-${parentId}`);
-    if(!replyList) return;
-    replyList.style.display='block';
+    const main = section.querySelectorAll('.comment-row').length;
+    const replies = section.querySelectorAll('.reply-row').length;
 
+    return main + replies;
+}
+
+function findTopParent(id) {
+    // If this is a main comment
+    if (document.querySelector(`[data-comment-id='${id}']`)) return id;
+
+    // Otherwise find its parent's ID recursively
+    const replyRow = document.querySelector(`[data-reply-id='${id}']`);
+    if (!replyRow) return id;
+
+    const parentId = replyRow.dataset.parentId;
+    return findTopParent(parentId);
+}
+
+//add reply dynamically
+function addReply(parentId, data) {
+
+    // 1️⃣ Always find the top-level parent comment
+    let topParentId = findTopParent(parentId);
+
+    // 2️⃣ Use only the top-level reply list
+    let replyList = document.getElementById(`replies-${topParentId}`);
+
+    // If reply-list doesn't exist (first reply)
+    if (!replyList) {
+        const parentRow = document.querySelector(`[data-comment-id='${topParentId}']`);
+        if (parentRow) {
+            replyList = document.createElement('div');
+            replyList.className = 'reply-list';
+            replyList.id = `replies-${topParentId}`;
+            replyList.style.display = 'block';
+
+            const container = parentRow.querySelector('.comment-container');
+            container.appendChild(replyList);
+        }
+    }
+
+    replyList.style.display = 'block';
+
+    // 3️⃣ Build reply row (no nested reply-list)
     const div = document.createElement('div');
-    div.className='reply-row';
+    div.className = 'reply-row';
     div.dataset.replyId = data.id;
+    div.dataset.parentId = parentId;
 
     div.innerHTML = `
       ${data.profile_image 
@@ -410,23 +1151,21 @@ function addReply(parentId, data){
           </div>
 
           ${data.parent_author 
-            ? `<div class="reply-parent">
-                 <span class="reply-parent-author">${escapeHtml(data.parent_author)}</span>
-                 <span class="reply-body">${escapeHtml(data.body)}</span>
-               </div>`
+            ? `<div class="reply-parent"><span class="reply-parent-author">${escapeHtml(data.parent_author)}</span> <span class="reply-body">${escapeHtml(data.body)}</span></div>`
             : `<div class="reply-body">${escapeHtml(data.body)}</div>`
           }
         </div>
 
         <div class="reply-actions">
           <button type="button" class="reply-link" 
-                  data-parent-id="${parentId}" 
+                  data-parent-id="${data.id}" 
                   data-comment-author="${escapeHtml(data.author)}">
             Reply
           </button>
+
           <div class="reply-ellipsis">
             <i class="fa-solid fa-ellipsis"></i>
-            <div class="reply-actions-menu" role="menu" aria-hidden="true">
+            <div class="reply-actions-menu">
               <button class="edit-reply-btn" data-reply-id="${data.id}">
                 <i class="fa-solid fa-pen"></i> Edit
               </button>
@@ -439,9 +1178,20 @@ function addReply(parentId, data){
       </div>
     `;
 
+    // 4️⃣ Append to top-level reply list (not nested)
     replyList.appendChild(div);
-    const toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${parentId}']`);
-    if(toggleBtn) toggleBtn.textContent = `Hide Replies (${replyList.children.length})`;
+
+    // 5️⃣ Update toggle button count
+    const toggleBtn = document.querySelector(`.toggle-replies-btn[data-parent-id='${topParentId}']`);
+    if (toggleBtn) {
+        toggleBtn.style.display = 'inline-block';
+        toggleBtn.textContent = `Hide Replies (${replyList.children.length})`;
+    }
+
+    // 6️⃣ Update total comment count
+    const articleId = document.querySelector('.comment-form').dataset.articleId;
+    const countEl = document.getElementById(`comment-count-${articleId}`);
+    if (countEl) countEl.textContent = getTotalComments(articleId) + " comments";
 
     updateTimes();
 }
@@ -471,16 +1221,35 @@ function addReply(parentId, data){
                 </div>
                 <div class="comment-actions">
                     <button type="button" class="reply-link" data-comment-id="${data.id}" data-comment-author="${escapeHtml(data.username)}">Reply</button>
+                    <div class="reply-ellipsis">
+            <i class="fa-solid fa-ellipsis"></i>
+            <div class="reply-actions-menu">
+              <button class="edit-reply-btn" data-reply-id="${data.id}">
+                <i class="fa-solid fa-pen"></i> Edit
+              </button>
+              <button class="delete-reply-btn" data-reply-id="${data.id}">
+                <i class="fa-solid fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
                 </div>
-                <button type="button" class="toggle-replies-btn" data-parent-id="${data.id}" style="display:none;">Show Replies (0)</button>
+               
                 <div class="reply-list" id="replies-${data.id}" style="display:none;"></div>
+                 <button type="button" class="toggle-replies-btn" data-parent-id="${data.id}" style="display:none;">Show Replies (0)</button>
             </div>
         `;
         commentList.appendChild(div);
+        const noComments = document.querySelector(`#comments-${articleId} .no-comments`);
+        if (noComments) noComments.remove();
+
 
         // Update comment count
-        const countEl = document.getElementById(`comment-count-${articleId}`);
-        if(countEl) countEl.textContent = commentList.children.length + (commentList.children.length === 1 ? ' comment' : ' comments');
+const countEl = document.getElementById(`comment-count-${articleId}`);
+if (countEl) {
+    const total = getTotalComments(articleId);
+    countEl.textContent = total + (total === 1 ? ' comment' : ' comments');
+}
+
 
         updateTimes();
     }
@@ -614,16 +1383,21 @@ if (replyBtn) {
 
 
             // Toggle replies
-            const toggleBtn = e.target.closest('.toggle-replies-btn');
-            if (toggleBtn) {
-                const parentId = toggleBtn.dataset.parentId;
-                const replyList = document.getElementById(`replies-${parentId}`);
-                if (!replyList) return;
-                const hidden = replyList.style.display === 'none' || !replyList.style.display;
-                replyList.style.display = hidden ? 'block' : 'none';
-                toggleBtn.textContent = hidden ? `Hide Replies (${replyList.children.length})` : `Show Replies (${replyList.children.length})`;
-                return;
-            }
+       // Toggle replies
+const toggleBtn = e.target.closest('.toggle-replies-btn');
+if (toggleBtn) {
+  const parentId = toggleBtn.dataset.parentId;
+  const replyList = document.getElementById(`replies-${parentId}`);
+  if (!replyList) return;
+  // compute current open state
+  const isOpen = replyList.style.display === 'block';
+  // toggle
+  replyList.style.display = isOpen ? 'none' : 'block';
+  // update label using current number of child reply rows
+  const count = replyList.querySelectorAll('.reply-row').length;
+  toggleBtn.textContent = isOpen ? `Show Replies (${count})` : `Hide Replies (${count})`;
+  return;
+}
 
             // Edit/Delete
             const handleEditDelete = async (btnSelector, bodySelector, urlPrefix) => {
@@ -675,4 +1449,4 @@ if (replyBtn) {
     setInterval(updateTimes, 30000);
 
 })();
-</script> 
+</script>  
