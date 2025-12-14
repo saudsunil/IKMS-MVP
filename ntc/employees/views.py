@@ -49,4 +49,4 @@ def delete_profile_image(request):
         employee.profile_image.delete(save=True)  # deletes file and clears field
     return JsonResponse({'status': 'success'})
 
-from django.http import JsonResponse
+
