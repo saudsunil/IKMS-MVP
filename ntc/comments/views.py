@@ -11,8 +11,7 @@ from django.utils import timezone
 
 
 
-@login_required
-
+@require_POST
 @login_required
 def add_comment(request, article_id):
     if request.method != "POST":
@@ -140,3 +139,56 @@ def delete_comment(request, comment_id):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
+
+@login_required
+@require_POST
+def edit_comment(request, comment_id):
+    try:
+        employee= request.user.employee
+        comment = Comment.objects.get(id=comment_id, author=employee)
+    except Comment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+    data = json.loads(request.body)
+    body = data.get('body', '').strip()
+
+    if not body:
+        return JsonResponse({'success': False, 'error': 'Empty'})
+
+    comment.body = body
+    comment.save()
+
+    return JsonResponse({
+        'success': True,
+        'id': comment.id,
+        'body': comment.body,
+        'updated_at': comment.updated_at.isoformat()
+    })
+
+
+@login_required
+@require_POST
+def edit_reply(request, reply_id):
+    try:
+        employee=request.user.employee
+        reply = Comment.objects.get(id=reply_id, author=employee)
+    except Comment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+    data = json.loads(request.body)
+    body = data.get('body', '').strip()
+
+    if not body:
+        return JsonResponse({'success': False})
+
+    reply.body = body
+    reply.save()
+
+    return JsonResponse({
+        'success': True,
+        'id': reply.id,
+        'body': reply.body,
+        'updated_at': reply.updated_at.isoformat()
+    })
