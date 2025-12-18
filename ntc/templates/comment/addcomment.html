@@ -855,11 +855,15 @@ if (toggleBtn) {
   <!-- New Comment Form -->
   <form class="comment-form" data-article-id="{{ article.id }}">
     {% csrf_token %}
-    <div class="replying-indicator" style="display:none; font-size:13px; color:#555; margin-bottom:6px;">
-      Replying to <span class="reply-to-name" style="font-weight:600"></span>
-      &nbsp;
-      <button type="button" class="cancel-reply" style="background:none;border:none;color:#888;cursor:pointer;padding:0;margin-left:8px;">Cancel</button>
-    </div>
+   <div class="replying-indicator" style="display:none; font-size:13px; color:#555; margin-bottom:6px;">
+
+  <button type="button" class="cancel-reply"
+    style="background:none;border:none;color:#888;cursor:pointer;padding:0;margin-left:8px;">
+    ✕
+  </button>
+</div>
+
+
 
     <div class="input-wrapper">
       <input type="text" name="comment" placeholder="Write a comment..." autocomplete="off" required>
@@ -902,7 +906,7 @@ if (toggleBtn) {
 }
 .reply-row{
   margin-left: -47px;
-  margin-top:10px;
+  margin-top:5px;
 }
 
 .comment-container, .reply-container {
@@ -961,28 +965,28 @@ if (toggleBtn) {
   margin-top: 2px;
 
 }
-.comment-body{
-  margin-top:-3px;
-}
+
 .reply-body{
   margin-left:2px;
+
+
 }
 
-.reply-parent {
+.reply-parent, .comment-body{
     font-size: 13px;
  
     color: #444;
     display: flex;
     gap: 2px;
     flex-wrap: wrap;
-    margin-top:-3px;
+    margin-top:-2px;
 }
 
 .reply-parent-author {
     font-weight: 500;
     font-size: 13px;
     color: #0d6efd;;
-    margin-top:0px;
+   
 }
 
 .comment-actions, .reply-actions {
@@ -1033,33 +1037,58 @@ if (toggleBtn) {
 
 .comment-ellipsis, .reply-ellipsis {
   position: relative;
-  display: flex;
-  align-items: center;
-  margin-left: 12px;
+  display: inline-block;
+  width: auto;
+  height: auto;
+
+
   cursor:pointer;
   margin-top:3px;
   color:#555;
   font-size:12px;
 }
+.comment-actions,
+.reply-actions {
+  position: relative; /* anchor for absolute menu */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top:-4px;
+}
+
 
 .actions-menu, .reply-actions-menu {
-  display: none;
+  display:none;
   position: absolute;
   top: 100%;
-  right: 0;
+  margin-left:15px;
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 1200;
-  min-width: 120px;
-  margin-top: 4px;
+  width: 130px;
+  min-width: unset;
+  margin-top: -60px;
+  font-size: 12px;
+  line-height: 1.2;
+  left: 0;
+ 
+  
 }
+
+.actions-menu i,
+.reply-actions-menu i {
+  width: 16px;
+  font-size: 11px;
+  text-align: center;
+}
+
 
 .actions-menu button, .reply-actions-menu button {
   width: 100%;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   background: none;
   border: none;
@@ -1068,8 +1097,18 @@ if (toggleBtn) {
   font-size: 13px;
   color: #555;
   text-align: left;
+  font-weight: normal;
 }
 
+.actions-menu button.delete-btn,
+.reply-actions-menu button.delete-reply-btn {
+  color: #e65d5dff;;
+ 
+}
+.actions-menu button.delete-btn:hover,
+.reply-actions-menu button.delete-reply-btn:hover {
+  background: #ffe5e5;
+}
 .actions-menu button:hover, .reply-actions-menu button:hover { background: #f5f5f5; }
 
 .reply-actions, .reply-link{
@@ -1105,12 +1144,20 @@ if (toggleBtn) {
 
 <script>
 (function() {
+     if (window.__commentsClickBound) return;
+     window.__commentsClickBound = true;
+
     // ---------- Helper functions ----------
     function getCookie(name) {
         const cookies = document.cookie ? document.cookie.split(';').map(c => c.trim()) : [];
         for (const c of cookies) if (c.startsWith(name + '=')) return decodeURIComponent(c.split('=')[1]);
         return null;
     }
+    
+
+
+  const csrftoken = getCookie('csrftoken');
+
 
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
@@ -1282,13 +1329,13 @@ function addReply(parentId, data) {
                 </div>
                 <div class="comment-actions">
                     <button type="button" class="reply-link" data-comment-id="${data.id}" data-comment-author="${escapeHtml(data.username)}">Reply</button>
-                    <div class="reply-ellipsis">
+                    <div class="comment-ellipsis">
             <i class="fa-solid fa-ellipsis"></i>
-            <div class="reply-actions-menu">
-              <button class="edit-reply-btn" data-reply-id="${data.id}">
+            <div class="actions-menu">
+              <button class="edit-btn" data-reply-id="${data.id}">
                 <i class="fa-solid fa-pen"></i> Edit
               </button>
-              <button class="delete-reply-btn" data-reply-id="${data.id}">
+              <button class="delete-btn" data-reply-id="${data.id}">
                 <i class="fa-solid fa-trash"></i> Delete
               </button>
             </div>
@@ -1300,7 +1347,7 @@ function addReply(parentId, data) {
             </div>
         `;
         commentList.appendChild(div);
-        const noComments = document.querySelector(`#comments-${articleId} .no-comments`);
+        const noComments = document.querySelector(`#comments-${articleId} .no-comment`);
         if (noComments) noComments.remove();
 
 
@@ -1315,46 +1362,47 @@ if (countEl) {
         updateTimes();
     }
 
-    // ---------- Initialize comment system ----------
+
+    // ---------- Initialize comment system ---------- only for  comment form , cancel-reply, submit logic
    function initComments() {
+        
         if(window.kbmsCommentsInit) return;
         window.kbmsCommentsInit = true;
+        const articleId = document.body.dataset.articleId;
+    
 
-        // Toggle comments section
-        document.querySelectorAll('.toggle-comments-btn').forEach(btn=>{
-            btn.addEventListener('click', ()=>{
-                const id = btn.dataset.articleId;
-                const section = document.getElementById(`comments-${id}`);
-                if(!section) return;
-                const hidden = section.style.display === 'none' || !section.style.display;
-                section.style.display = hidden ? 'block' : 'none';
-                section.setAttribute('aria-hidden', hidden ? 'false' : 'true');
-                if(hidden) updateTimes();
-            });
+    document.querySelectorAll('.comment-form').forEach(form => {
+        if (form.dataset.bound) return;
+        form.dataset.bound = '1';
+
+        const input = form.querySelector('input[name="comment"]');
+        const sendBtn = form.querySelector('.comment-btn');
+        const replyingIndicator = form.querySelector('.replying-indicator');
+
+        input.addEventListener('input', () => {
+            sendBtn.classList.toggle('visible', input.value.trim() !== '');
         });
 
-        // Handle comment forms
-        document.querySelectorAll('.comment-form').forEach(form => {
-            if (form.dataset.bound) return;
-            form.dataset.bound = '1';
+        // ❌ cancel
+        form.addEventListener('click', e => {
+            if (e.target.closest('.cancel-reply')) {
+                delete form.dataset.replyTo;
+                delete form.dataset.editingId;
 
-            const input = form.querySelector('input[name="comment"]');
-            const sendBtn = form.querySelector('.comment-btn');
-            const articleId = form.dataset.articleId;
-            const replyingIndicator = form.querySelector('.replying-indicator');
-            if (!input || !sendBtn || !articleId) return;
+                input.value = '';
+                input.placeholder = 'Write a comment...';
+                replyingIndicator.style.display = 'none';
+                input.focus();
+            }
+        });
 
-            input.addEventListener('input', () => sendBtn.classList.toggle('visible', input.value.trim() !== ''));
+     
 
-            form.addEventListener('click', e => {
-                if (e.target.closest('.cancel-reply')) {
-                    delete form.dataset.replyTo;
-                    if (replyingIndicator) replyingIndicator.style.display = 'none';
-                    input.placeholder = 'Write a comment...';
-                    input.focus();
-                }
-            });
 
+
+       
+        // Handle comment submit forms
+        
 form.addEventListener('submit', async e => {
     e.preventDefault();
     const body = input.value.trim();
@@ -1365,28 +1413,38 @@ form.addEventListener('submit', async e => {
         let url = '';
         let isReply = false;
 
+        // ✅ Get articleId at the top
+        const articleId = form.dataset.articleId;
+        if (!articleId) {
+            console.error("Article ID is missing!");
+            return;
+        }
+
         if (form.dataset.editingId) {
             const id = form.dataset.editingId;
             const row = document.querySelector(`[data-comment-id="${id}"], [data-reply-id="${id}"]`);
             isReply = row && row.classList.contains('reply-row');
             url = isReply 
-            ? `/comments/edit-reply/${id}/` : `/comments/edit/${id}/`;
+                ? `/comments/edit-reply/${id}/` 
+                : `/comments/edit/${id}/`;
         } else {
             isReply = !!form.dataset.replyTo;
-            url = isReply ? `/comments/reply/${form.dataset.replyTo}/` : `/comments/add/${articleId}/`;
+            url = isReply 
+                ? `/comments/reply/${form.dataset.replyTo}/` 
+                : `/comments/add/${articleId}/`;
         }
 
         const res = await fetch(url, {
-            method:'POST',
-            headers:{'X-CSRFToken': csrftoken,'Content-Type':'application/json'},
-            body: JSON.stringify({body})
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ body })
         });
-        const data = await res.json().catch(()=>({}));
 
+        const data = await res.json().catch(() => ({}));
         if (!data || !data.success) return;
 
         if (form.dataset.editingId) {
-            // Update UI dynamically
+            // Update existing comment/reply dynamically
             const editRow = document.querySelector(`[data-comment-id="${data.id}"], [data-reply-id="${data.id}"]`);
             if (editRow) {
                 const bodyEl = editRow.querySelector(isReply ? '.reply-body' : '.comment-body');
@@ -1399,22 +1457,61 @@ form.addEventListener('submit', async e => {
             if (replyingIndicator) replyingIndicator.style.display = 'none';
             input.value = '';
         } else {
-            if (isReply) addReply(form.dataset.replyTo, data);
-            else addComment(articleId, data);
+            // Add new comment/reply dynamically
+            if (isReply) {
+                addReply(form.dataset.replyTo, data);
+            } else {
+                addComment(articleId, data); // ✅ articleId is now defined
+            }
             input.value = '';
             delete form.dataset.replyTo;
             if (replyingIndicator) replyingIndicator.style.display = 'none';
         }
-    } catch(err){ console.error(err); }
-    finally { sendBtn.disabled = false; updateTimes(); }
+    } catch (err) { 
+        console.error(err); 
+    } finally { 
+        sendBtn.disabled = false; 
+        updateTimes(); 
+    }
 });
-
-});
-
+    });}
 
     // Delegated click for reply, toggle, edit, delete
 document.addEventListener('click', async e => {
-    const csrftoken = getCookie('csrftoken');
+   
+
+
+
+
+    /* ===============================
+       TOGGLE COMMENTS SECTION ✅ FIXED
+    ================================ */
+    const toggleCommentsBtn = e.target.closest('.toggle-comments-btn');
+if (toggleCommentsBtn) {
+    e.preventDefault();
+    e.stopPropagation(); // 🔥 THIS IS IMPORTANT
+
+    const id = toggleCommentsBtn.dataset.articleId;
+    const section = document.getElementById(`comments-${id}`);
+    if (!section) return;
+
+    const isOpen = section.style.display === 'block';
+    section.style.display = isOpen ? 'none' : 'block';
+
+    updateTimes();
+    return;
+}
+
+
+        // Close all menus when clicking outside
+if (!e.target.closest('.comment-ellipsis') && !e.target.closest('.reply-ellipsis')) {
+    document.querySelectorAll('.actions-menu, .reply-actions-menu')
+        .forEach(m => m.style.display = 'none');
+}
+ 
+
+
+
 
     /* ===============================
        ELLIPSIS TOGGLE (FIXED)
@@ -1436,27 +1533,62 @@ if (commentEllipsis && e.target.closest('.fa-ellipsis')) {
     return;
 }
 
+/* ===============================
+   EDIT REPLY (MUST BE FIRST)
+================================ */
+const editReplyBtn = e.target.closest('.edit-reply-btn');
+if (editReplyBtn) {
+    e.stopPropagation();
 
+    const row = editReplyBtn.closest('.reply-row');
+    if (!row) return;
+
+    const section = row.closest('.comments-section');
+    const form = section.querySelector('.comment-form');
+    const input = form.querySelector('input[name="comment"]');
+    const bodyEl = row.querySelector('.reply-body');
+    const indicator = form.querySelector('.replying-indicator');
+
+    // ✅ show ONLY comment text in input
+    input.value = bodyEl.textContent.trim();
+    input.placeholder = 'Edit your reply...';
+    input.focus();
+
+    form.dataset.editingId = row.dataset.replyId;
+
+    // ✅ show ONLY ❌ icon
+    if (indicator) indicator.style.display = 'block';
+    
+
+    // close ellipsis menu
+  let menu = row.querySelector('.reply-actions-menu');
+if (menu) menu.style.display = 'none';
+
+
+
+
+    console.log('✅ EDIT REPLY CLICKED');
+    return;
+}
+
+
+
+// REPLY MENU TOGGLE
 // REPLY MENU TOGGLE
 const replyEllipsis = e.target.closest('.reply-ellipsis');
 
-if (replyEllipsis) {
+if (replyEllipsis && e.target.classList.contains('fa-ellipsis')) {
+  e.stopPropagation();
     const menu = replyEllipsis.querySelector('.reply-actions-menu');
 
-    // Only toggle menu if clicked the icon itself
-    if (e.target.classList.contains('fa-ellipsis')) {
-        document.querySelectorAll('.reply-actions-menu').forEach(m => {
-            if (m !== menu) m.style.display = 'none';
-        });
+    document.querySelectorAll('.reply-actions-menu').forEach(m => {
+        if (m !== menu) m.style.display = 'none';
+    });
 
-        const isOpen = menu.style.display === 'block';
-        menu.style.display = isOpen ? 'none' : 'block';
-        menu.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-    }
-
-    // ⚠️ Do NOT return here
-    // This allows clicks on buttons inside the menu (edit/delete) to work
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    return;
 }
+
 
     /* ===============================
        TOGGLE REPLIES
@@ -1491,10 +1623,10 @@ if (replyEllipsis) {
         const input = form.querySelector('input[name="comment"]');
         const replyingIndicator = form.querySelector('.replying-indicator');
         form.dataset.replyTo = parentId;
-        if (replyingIndicator) {
+        if (replyingIndicator) 
             replyingIndicator.style.display = 'block';
-            replyingIndicator.querySelector('.reply-to-name').textContent = author || 'user';
-        }
+
+        
         input.placeholder = author ? `Replying to ${author}...` : 'Write a reply...';
         input.focus();
         return;
@@ -1505,6 +1637,7 @@ if (replyEllipsis) {
     ================================ */
 const editCommentBtn = e.target.closest('.edit-btn');
 if (editCommentBtn) {
+  e.stopPropagation();
     const row = editCommentBtn.closest('.comment-row');
     if (!row) return;
 
@@ -1512,8 +1645,9 @@ if (editCommentBtn) {
     const form = section.querySelector('.comment-form');
     const input = form.querySelector('input[name="comment"]');
     const bodyEl = row.querySelector('.comment-body');
+    const indicator = form.querySelector('.replying-indicator');
 
-    if (!input || !bodyEl) return;
+  
 
     // populate input with current comment
     input.value = bodyEl.textContent.trim();
@@ -1523,47 +1657,17 @@ if (editCommentBtn) {
     form.dataset.editingId = row.dataset.commentId;
 
     // show editing indicator
-    const indicator = form.querySelector('.replying-indicator');
-    if (indicator) {
+    
+    if (indicator) 
         indicator.style.display = 'block';
-        indicator.querySelector('.reply-to-name').textContent = 'Editing...';
-    }
-}
+         // close ellipsis menu
+       let menu = row.querySelector('.actions-menu');
+if (menu) menu.style.display = 'none';
 
 
-    /* ===============================
-       EDIT REPLY
-    ================================ */
-const editReplyBtn = e.target.closest('.edit-reply-btn');
-if (editReplyBtn) {
-    const row = editReplyBtn.closest('.reply-row');
-    if (!row) return;
-
-    const section = row.closest('.comments-section');
-    const currentUser = section.dataset.currentUser?.trim().toLowerCase();
-    const authorName = row.querySelector('.reply-meta strong')?.dataset.username?.trim().toLowerCase();
-
-    if (!currentUser || !authorName || currentUser !== authorName) return;
-
-    const form = section.querySelector('.comment-form');
-    const input = form.querySelector('input[name="comment"]');
-    const bodyEl = row.querySelector('.reply-body');
-
-    input.value = bodyEl.textContent.trim();
-    input.focus();
-
-    form.dataset.editingId = row.dataset.replyId;
-
-    const indicator = form.querySelector('.replying-indicator');
-    if (indicator) {
-        indicator.style.display = 'block';
-        indicator.querySelector('.reply-to-name').textContent = 'Editing reply...';
-    }
-
-    // ✅ Close menu
-    row.querySelector('.reply-actions-menu').style.display = 'none';
-
-    console.log('EDIT REPLY CLICKED');
+       
+    return;
+    
 }
 
 
@@ -1571,32 +1675,42 @@ if (editReplyBtn) {
        DELETE COMMENT / REPLY
     ================================ */
 
-    const deleteBtn = e.target.closest('.delete-btn, .delete-reply-btn');
-    if (deleteBtn) {
-        if (!confirm('Delete?')) return;
-        const row = deleteBtn.closest('.comment-row, .reply-row');
-        const id = deleteBtn.dataset.commentId || deleteBtn.dataset.replyId;
-        fetch(`/comments/delete/${id}/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrftoken }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) row.remove();
-            })
-            .catch(err => console.error(err));
-        return;
-    }
-});
    
+const deleteBtn = e.target.closest('.delete-btn, .delete-reply-btn');
+if (deleteBtn) {
+    e.stopPropagation(); // 🔥 IMPORTANT
 
+    if (!confirm('Delete?')) return;
 
+    const row = deleteBtn.closest('.comment-row, .reply-row');
+
+    // ✅ CLOSE MENU BEFORE DELETE
+    const menus = row.querySelectorAll('.actions-menu, .reply-actions-menu');
+menus.forEach(m => m.style.display = 'none');
+
+    const id = deleteBtn.dataset.commentId || deleteBtn.dataset.replyId;
+
+    fetch(`/comments/delete/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) row.remove();
+    })
+    .catch(err => console.error(err));
+
+    return;
 }
+});
+
+
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => { initComments(); updateTimes(); });
     } else { initComments(); updateTimes(); }
 
     setInterval(updateTimes, 30000);
 
-})();
+   })();
 </script>  
