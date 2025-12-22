@@ -6,7 +6,7 @@
 <div class="filter-buttons">
     <button class="filter-btn active" data-type="All">All</button>
     <button class="filter-btn" data-type="General">General</button>
-    <button class="filter-btn" data-type="Samrika">Samrika</button>
+    <button class="filter-btn" data-type="Samrika">Smarika</button>
     <button class="filter-btn" data-type="Employee Experience">Employee Experience</button>
 </div>
 
@@ -31,9 +31,7 @@
                 </div>
             </div>
 
-            {% if user.id == article.author.id %}
-            <div class="delete-btn" title="Delete Article">&times;</div>
-            {% endif %}
+            
         </div>
 
         <hr style="margin: -5px 0;">
@@ -138,14 +136,6 @@
 }
 .author-details { display: flex; flex-direction: column; font-size: 14px; }
 
-/* Delete Button */
-.delete-btn {
-    font-size: 26px;
-    cursor: pointer;
-    color: #dc3545;
-    font-weight: bold;
-}
-.delete-btn:hover { color: #a71d2a; }
 
 /* Title */
 .article-title {
@@ -264,22 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Delete article
-    document.querySelectorAll('.delete-btn').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-            const card = btn.closest('.article-card');
-            const articleId = card.dataset.articleId;
-            if(confirm('Are you sure you want to delete this article?')){
-                fetch(`/articles/delete/${articleId}/`,{
-                    method:'DELETE',
-                    headers:{'X-CSRFToken': csrftoken,'X-Requested-With':'XMLHttpRequest'}
-                })
-                .then(res=>res.json())
-                .then(data=>{ if(data.success){ card.remove(); alert('Article deleted successfully'); } else alert('Error deleting article'); })
-                .catch(err=>console.error(err));
-            }
-        });
-    });
+    
 
     // See more logic
     document.querySelectorAll('.article-preview').forEach(preview => {
