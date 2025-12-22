@@ -140,6 +140,8 @@ textarea { min-height:100px; resize:vertical; }
 @media (max-width:560px) {
     .modal-content-custom { padding:16px; }
 }
+
+
 </style>
 </head>
 <body>
@@ -228,7 +230,7 @@ textarea { min-height:100px; resize:vertical; }
         <select name="category" id="categorySelect" class="form-select">
           <option value="" disabled selected>Select Article Type</option>
           <option value="experience">Employee Experience</option>
-          <option value="samrika">Samrika</option>
+          <option value="samrika">Smarika</option>
           <option value="general">General</option>
         </select>
       </div>
@@ -261,6 +263,7 @@ textarea { min-height:100px; resize:vertical; }
 
 <!-- small helper area for alerts (optional) -->
 <div id="hiddenArea" style="display:none;"></div>
+
 <script>
 /* =========================
    Helper: Get CSRF from cookie
@@ -594,6 +597,7 @@ articleForm.addEventListener('submit', function(e) {
     .catch(err => showAlert('Error publishing article', 'danger', 3000));
 });
 </script>
+
 
 
 </body>

@@ -11,8 +11,7 @@ from django.utils import timezone
 
 
 
-@login_required
-
+@require_POST
 @login_required
 def add_comment(request, article_id):
     if request.method != "POST":
@@ -60,6 +59,7 @@ def add_comment(request, article_id):
     "parent": None,              # MAIN COMMENT
     "parent_author": "",         # No parent
     "reply_count": comment.comment_set.count(),            # Main comment has 0 replies initially
+    "is_author": True,
 })
 
 
@@ -123,20 +123,74 @@ def reply_comment(request, comment_id):
         "created_at": reply.created_at.isoformat(),
         "parent": parent.id,
         "parent_author": parent.author.name,
-        "reply_count": parent.comment_set.count()
+        "reply_count": parent.comment_set.count(),
+        "is_owner": True,
+    })
+
+@require_POST
+@login_required
+def delete_comment(request, comment_id):
+   
+    comment = get_object_or_404(Comment, id=comment_id)
+
+        # Optional: only allow author or admin to delete
+    if comment.author != request.user.employee and not request.user.is_superuser:
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+
+    comment.delete()
+    return JsonResponse({"success": True})
+
+
+
+
+
+@login_required
+@require_POST
+def edit_comment(request, comment_id):
+    try:
+        employee= request.user.employee
+        comment = Comment.objects.get(id=comment_id, author=employee)
+    except Comment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
+
+    data = json.loads(request.body)
+    body = data.get('body', '').strip()
+
+    if not body:
+        return JsonResponse({'success': False, 'error': 'Empty'})
+
+    comment.body = body
+    comment.save()
+
+    return JsonResponse({
+        'success': True,
+        'id': comment.id,
+        'body': comment.body,
+        'updated_at': comment.updated_at.isoformat()
     })
 
 
 @login_required
-def delete_comment(request, comment_id):
-    if request.method == "POST":
-        comment = get_object_or_404(Comment, id=comment_id)
+@require_POST
+def edit_reply(request, reply_id):
+    try:
+        employee=request.user.employee
+        reply = Comment.objects.get(id=reply_id, author=employee)
+    except Comment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not allowed'}, status=403)
 
-        # Optional: only allow author or admin to delete
-        if comment.author != request.user.employee and not request.user.is_superuser:
-            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+    data = json.loads(request.body)
+    body = data.get('body', '').strip()
 
-        comment.delete()
-        return JsonResponse({"success": True})
+    if not body:
+        return JsonResponse({'success': False})
 
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+    reply.body = body
+    reply.save()
+
+    return JsonResponse({
+        'success': True,
+        'id': reply.id,
+        'body': reply.body,
+        'updated_at': reply.updated_at.isoformat()
+    })
