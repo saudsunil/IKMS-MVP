@@ -7,4 +7,5 @@ urlpatterns = [
     path('edit/<int:comment_id>/', views.edit_comment),
     path('edit-reply/<int:reply_id>/', views.edit_reply),
     path('delete/<int:comment_id>/', views.delete_comment, name='delete_comment'),
+    path('delete/reply/<int:reply_id>/', views.delete_reply, name='delete_reply'),
 ]   

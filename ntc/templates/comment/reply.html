@@ -16,10 +16,11 @@
       </div>
 
       {% if reply.parent %}
-        <div class="reply-parent">
-          <span class="reply-parent-author">{{ reply.parent.author.name }}</span>
-          <span class="reply-body">{{ reply.body }}</span>
-        </div>
+       <div class="reply-body">
+        {% if reply.reply_to %}
+        <span class="reply-parent-author">{{ reply.reply_to.name }}</span>{{reply.body}}
+       {% endif%}
+       </div>
       {% else %}
         <div class="reply-body">{{ reply.body }}</div>
       {% endif %}
@@ -34,7 +35,7 @@
           {% if request.user.employee == reply.author %}
       <div class="reply-ellipsis">
         <i class="fa-solid fa-ellipsis"></i>
-        <div class="reply-actions-menu" role="menu" aria-hidden="true">
+        <div class="reply-actions-menu" role="menu">
           <button class="edit-reply-btn" data-reply-id="{{ reply.id }}"><i class="fa-solid fa-pen"></i> Edit</button>
           <button type="button" class="delete-reply-btn" data-reply-id="{{ reply.id }}"><i class="fa-solid fa-trash"></i> Delete</button>
         

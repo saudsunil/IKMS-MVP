@@ -66,66 +66,56 @@ def add_comment(request, article_id):
 @login_required
 @require_POST
 def reply_comment(request, comment_id):
-    parent = get_object_or_404(Comment, id=comment_id)
-    article = parent.article
+    clicked = get_object_or_404(Comment, id=comment_id)
+    article = clicked.article
     author = request.user.employee
 
-    # get body
-    body = ""
-    if request.content_type and "application/json" in request.content_type:
-        try:
-            payload = json.loads(request.body.decode("utf-8") or "{}")
-            body = (payload.get("body") or "").strip()
-        except json.JSONDecodeError:
-            body = ""
-    else:
-        body = (request.POST.get("body") or "").strip()
+    payload = json.loads(request.body or "{}")
+    body = (payload.get("body") or "").strip()
 
     if not body:
-        return JsonResponse({"success": False, "error": "Empty reply not allowed"}, status=400)
+        return JsonResponse({"success": False, "error": "Empty reply"}, status=400)
 
-    # Prevent near-duplicate replies
-    recent_reply = Comment.objects.filter(
-        article=article, parent=parent, author=author, body=body
-    ).order_by("-created_at").first()
+    # ✅ ALWAYS FIND TOP-LEVEL COMMENT
+    top_parent = clicked
+    while top_parent.parent_id:
+        top_parent = top_parent.parent
 
-    if recent_reply and (timezone.now() - recent_reply.created_at).total_seconds() < 5:
-        return JsonResponse({"success": False, "error": "Duplicate reply detected"}, status=400)
-
-    # ATTACH to the exact parent clicked, not always top-level
     reply = Comment.objects.create(
         article=article,
         author=author,
-        parent=parent,
+        parent=top_parent,   # ✅ FLAT
+        reply_to=clicked.author,
         body=body
     )
-    print( ({
+    print(({
         "success": True,
         "id": reply.id,
-        "author": getattr(reply.author, "name", str(reply.author)),
-        "username": getattr(reply.author, "name", str(reply.author)),
-        "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+        "author": author.name,
+        "profile_image": author.profile_image.url if author.profile_image else "",
         "body": reply.body,
         "created_at": reply.created_at.isoformat(),
-        "parent": parent.id,
-        "parent_author": parent.author.name,
-        "reply_count": parent.comment_set.count()
+        "parent": top_parent.id,
+        "top_parent_id": top_parent.id,
+        "reply_to_author": reply.reply_to.name if reply.reply_to else "",  # always use reply_to
+
+        "is_owner": True,
     }))
 
-    # Send the immediate parent's author
     return JsonResponse({
         "success": True,
         "id": reply.id,
-        "author": getattr(reply.author, "name", str(reply.author)),
-        "username": getattr(reply.author, "name", str(reply.author)),
-        "profile_image": reply.author.profile_image.url if reply.author.profile_image else "",
+        "author": author.name,
+        "profile_image": author.profile_image.url if author.profile_image else "",
         "body": reply.body,
         "created_at": reply.created_at.isoformat(),
-        "parent": parent.id,
-        "parent_author": parent.author.name,
-        "reply_count": parent.comment_set.count(),
+        "parent": top_parent.id,
+        "top_parent_id": top_parent.id,
+        "reply_to_author": reply.reply_to.name if reply.reply_to else "",
+
         "is_owner": True,
     })
+
 
 @require_POST
 @login_required
@@ -140,7 +130,17 @@ def delete_comment(request, comment_id):
     comment.delete()
     return JsonResponse({"success": True})
 
+@login_required
+@require_POST
+def delete_reply(request, reply_id):
+    reply = get_object_or_404(Comment, id=reply_id)
 
+    # Optional: only allow author or admin to delete
+    if reply.author != request.user.employee and not request.user.is_superuser:
+        return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+
+    reply.delete()
+    return JsonResponse({"success": True})
 
 
 

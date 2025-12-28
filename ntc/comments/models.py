@@ -5,7 +5,14 @@ from articles.models import Article
 class Comment(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE,  related_name="comments")
     author = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True,  related_name='replies', on_delete=models.CASCADE)
+    reply_to = models.ForeignKey(
+        Employee,
+        null=True,
+        blank=True,
+        related_name='replied_comments',
+        on_delete=models.SET_NULL
+    )
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
