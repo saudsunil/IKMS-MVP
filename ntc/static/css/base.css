@@ -1,0 +1,17 @@
+
+
+/* page layout */
+body { background: #f7f7f7; }
+.sidebar {
+    height: 100vh;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+}
+.profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #5a5a5a; }
+.feed-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+
+/* top notification area */
+#alertBox { display: none; position: sticky; top: 10px; z-index: 1200; }

@@ -1,0 +1,114 @@
+
+/* modal styling (centered square-like) */
+#writeArticleModal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity .18s ease;
+    z-index: 2000;
+}
+#writeArticleModal.show { visibility: visible; opacity: 1; }
+
+.modal-content-custom {
+    width: 540px;
+    max-width: calc(100% - 32px);
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    display: flex;
+    flex-direction: column;
+}
+
+/* header */
+.modal-header-custom { display:flex; justify-content:center; align-items:center; position:relative; margin-bottom: 14px; }
+.modal-header-custom h5 { margin:0; font-weight:600; }
+.close-button { position:absolute; right:0; top:-6px; font-size:26px; cursor:pointer; color:#333; }
+
+/* employee */
+.employee-info { display:flex; gap:12px; align-items:center; margin-bottom:12px; margin-top:-15px; }
+.profile-pic { width:45px; height:45px; border-radius:50%; object-fit:cover; }
+
+/* inputs */
+.form-control, .form-select, textarea {
+    border-radius:8px;
+    border:1px solid #ced4da;
+    padding:10px;
+    font-size:14px;
+    width:100%;
+}
+textarea { min-height:100px; resize:vertical; }
+ 
+.description-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+/* Textarea without border */
+.description-input {
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    padding: 20px 0;
+    font-size: 14px;
+    background: transparent;
+    min-height: 20px;
+}
+
+/* Add Photo Area */
+.add-photo-area {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #0d6efd;
+}
+
+/* Camera Icon */
+.camera-icon {
+    font-size: 25px;
+}
+
+/* Image Preview Container */
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Each Image Box */
+.image-preview-container img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.selected-image-wrapper {
+    position:absolute; top:10px; right:10px; display:flex; gap:6px; align-items:center;
+}
+.selected-image-wrapper img { max-width:64px; max-height:64px; border-radius:6px; object-fit:cover; }
+.remove-image {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; background:#dc3545; color:#fff; border-radius:50%; cursor:pointer; font-size:14px;
+}
+
+/* buttons */
+.modal-actions { display:flex; gap:10px; margin-top:12px; }
+.modal-actions .btn { flex:1; }
+
+/* small responsiveness */
+@media (max-width:560px) {
+    .modal-content-custom { padding:16px; }
+}
+
+

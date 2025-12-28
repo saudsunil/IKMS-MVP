@@ -1,0 +1,61 @@
+.profile-card {
+    background-color: #fff;       /* white background */
+    width: calc(100% + 30px);     /* extend beyond padding of parent */
+    margin-left: -25px;           /* offset parent's padding */
+    border: 1px solid #ddd;       /* subtle border */
+    border-radius: 0;             /* square corners */
+    padding: 15px;                /* inner spacing */
+    display: flex;                /* horizontal layout */
+    align-items: center;          /* vertical alignment */
+    box-sizing: border-box;       /* include padding in width */
+    margin-bottom: 15px;  
+   
+    margin-top:-25px;      /* spacing below */
+}
+
+
+ .profile-img {
+    width: 120px;
+    height: 120px;
+    border-radius:50% ; /* square image corners, remove if you want circle */
+    object-fit: cover;
+    border: 1px solid #ccc;
+    margin-right: 20px;
+    margin-left:30px;
+}
+
+
+/* Feed card */
+.feed-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    width: 100%;
+    box-sizing: border-box;
+}
+.profile-page .article-card {
+    max-width: 100% !important;
+    width: 100%;
+    margin: 0 0 20px 0;
+}
+.profile-page .comment-section,
+.profile-page .comment-list,
+.profile-page .comment-form {
+    width: 100%;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    .profile-img {
+        margin-bottom: 15px;
+    }
+}
+
+
+
+

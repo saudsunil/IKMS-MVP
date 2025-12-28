@@ -9,9 +9,25 @@ from django.contrib.auth.decorators import login_required
 from .forms import EmployeeEditForm
 
 
+from articles.models import Article
+
 def profile(request, id):
     employee = get_object_or_404(Employee, id=id)
-    return render(request, 'employees/profile.html', {'employee': employee})
+    articles = Article.objects.filter(author=employee).order_by('-created_at').prefetch_related(
+        'comments',
+        'comments__author',
+    )
+
+ 
+    
+    #add a 'top_comments' property dynamically (for compatibility with template)
+    for article in articles:
+     article.top_comments = article.comments.filter(parent__isnull=True).order_by('-created_at')
+    
+    return render(request, 'employees/profile.html', {
+        'employee': employee,
+        'articles': articles
+    })
 
 def employee_list(request):
     employees = Employee.objects.all()

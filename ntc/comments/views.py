@@ -45,7 +45,7 @@ def add_comment(request, article_id):
     "created_at": comment.created_at.isoformat(),
     "parent": None,              # MAIN COMMENT
     "parent_author": "",         # No parent
-    "reply_count": comment.comment_set.count(),           # Main comment has 0 replies initially
+    "reply_count": comment.replies.count(),           # Main comment has 0 replies initially
 })
 )
     return JsonResponse({
@@ -58,7 +58,7 @@ def add_comment(request, article_id):
     "created_at": comment.created_at.isoformat(),
     "parent": None,              # MAIN COMMENT
     "parent_author": "",         # No parent
-    "reply_count": comment.comment_set.count(),            # Main comment has 0 replies initially
+    "reply_count": comment.replies.count(),            # Main comment has 0 replies initially
     "is_author": True,
 })
 

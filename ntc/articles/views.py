@@ -67,3 +67,17 @@ def article_list(request):
 def article_detail(request, id):
     article = get_object_or_404(Article, id=id)
     return render(request, "articles/detail.html", {"article": article})
+
+
+
+@login_required
+def edit_article(request, id):
+    article = get_object_or_404(Article, id=id, author=request.user.employee)
+    if request.method == 'POST':
+        form= ArticleForm(request.POST, request.FILES, instance=article)
+        if form.is_valid():
+            return redirect('employee_profile', request.user.employee.id)
+        else:
+            form =ArticleForm(instance=article)
+            
+        return render(request, 'articles/edit_article.html', {'form': form})

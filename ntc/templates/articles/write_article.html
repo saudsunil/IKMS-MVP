@@ -1,0 +1,71 @@
+
+<!-- WRITE ARTICLE MODAL (hidden initially) -->
+<div id="writeArticleModal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-content-custom" role="document">
+
+    <div class="modal-header-custom">
+      <h5 style="margin-top:-15px;">Write Article</h5>
+      <div class="close-button" id="modalCloseBtn" title="Close"  style="margin-top:-15px;">&times;</div>
+    </div>
+
+    <div class="employee-info">
+      {% if employee and employee.profile_image %}
+        <img src="{{ employee.profile_image.url }}" class="profile-pic">
+      {% else %}
+        <div class="profile-pic d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;">👤</div>
+      {% endif %}
+      <div>
+        <strong>{% if employee %}{{ employee.name }}{% else %}Guest{% endif %}</strong><br>
+
+      </div>
+    </div>
+
+    <!-- form posts to write_article view (AJAX used) -->
+    <form id="articleForm" method="POST" enctype="multipart/form-data" action="{% url 'write_article' %}">
+      {% csrf_token %}
+      <!-- hidden id of draft if saved (populated client-side) -->
+      <input type="hidden" name="draft_id" id="draftIdInput" value="">
+
+      <!-- Title -->
+      <div class="mb-3">
+        <input type="text" name="title" id="titleInput" class="form-control" placeholder="Title" value="{{ form.title.value|default:'' }}">
+      </div>
+
+      <!-- Category -->
+      <div class="mb-3">
+        <label for="categorySelect" class="form-label visually-hidden">Article Type</label>
+        <select name="category" id="categorySelect" class="form-select">
+          <option value="" disabled selected>Select Article Type</option>
+          <option value="experience">Employee Experience</option>
+          <option value="samrika">Smarika</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+<!-- Description + Image Picker -->
+
+     <div class="description-section">
+    <!-- Textarea -->
+    <textarea name="content" id="contentInput" class="description-input" placeholder="Write your article..." style="margin-top:-20px;">{{ form.content.value|default:'' }}</textarea>
+
+    <!-- Add Photo button -->
+    <div class="add-photo-area" id="addPhotoArea" style="margin-top:-30px;">
+        <span class="camera-icon">📷</span>
+        <span class="add-photo-text">Add photo</span>
+        <input type="file" id="coverImageInput" name="cover_image" accept="image/*" multiple class="d-none">
+    </div>
+
+    <!-- Image Preview Container -->
+    <div class="image-preview-container" id="selectedImageContainer"></div>
+</div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary">Save as Draft</button>
+        <button type="submit" id="publishBtn" class="btn btn-primary">Publish</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+<!-- small helper area for alerts (optional) -->
+<div id="hiddenArea" style="display:none;"></div>

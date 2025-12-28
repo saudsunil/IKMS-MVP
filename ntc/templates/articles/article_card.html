@@ -1,0 +1,56 @@
+
+
+<!-- Articles Container -->
+
+    <div class="article-card" data-article-id="{{ article.id }}" data-type="{{ article.get_category_display }}">
+        <!-- Article Type (Top) -->
+        <div class="article-type">{{ article.get_category_display }}</div>
+
+        <!-- Article Header: Author + Delete -->
+        <div class="article-header">
+            <div class="author-info">
+                {% if article.author.profile_image %}
+                    <img src="{{ article.author.profile_image.url }}" class="author-img">
+                {% else %}
+                    <div class="author-placeholder">👤</div>
+                {% endif %}
+                <div class="author-details">
+                    <strong>{{ article.author.name }}</strong>
+                    <small>{{ article.created_at|date:"F j, Y, g:i a" }}</small>
+                </div>
+            </div>
+
+            
+        </div>
+
+        <hr style="margin: -5px 0;">
+
+        <!-- Title -->
+        <h4 class="article-title">Title: {{ article.title }}</h4>
+        <hr style="margin: -5px 0;">
+
+        <!-- Article Content -->
+        <div class="article-preview">
+            <div class="article-text" id="text-{{ article.id }}">
+                {{ article.content|linebreaks }}
+            </div>
+            <div class="see-more" id="btn-{{ article.id }}" onclick="toggleSeeMore({{ article.id }})">
+                See more
+            </div>
+        </div>
+
+        <!-- Cover Image -->
+        {% if article.cover_image %}
+        <div class="cover-image-wrapper">
+            <img src="{{ article.cover_image.url }}" class="cover-image">
+        </div>
+        {% endif %}
+
+        <!-- Include Comment Form & Comment List -->
+        {% include "comment/addcomment.html" with article=article %}
+        
+    </div>
+
+
+
+
