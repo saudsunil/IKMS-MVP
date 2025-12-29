@@ -8,6 +8,8 @@ from django.conf import settings
 import random
 import string
 from articles.forms import ArticleForm
+from django.db import transaction, IntegrityError
+
 
 from django.http import JsonResponse
 
@@ -48,82 +50,64 @@ def login_view(request):
             error = "Invalid username or password"
     return render(request, 'core/login.html', {'error': error})
 
-# Signup view
+
+
+
+
+
 
 
 def signup_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        confirm_password = request.POST['confirm_password']
-        email = request.POST['email']
-
+        username = request.POST.get('username', '').strip()
+        email= request.POST.get('email', '').strip()
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        
         if password != confirm_password:
             return render(request, 'core/signup.html', {'error': 'Passwords do not match'})
-
-        if User.objects.filter(username=username).exists():
-            return render(request, 'core/signup.html', {'error': 'Username already exists'})
-
-        # 1️⃣ Create User
-        user = User.objects.create_user(username=username, password=password, email=email)
-
-        # 2️⃣ Generate unique employee code
-        emp_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         
-        # 3️⃣ Create Employee linked to this user
-        Employee.objects.create(
-            user=user,
-            name=username,        # default name is username; can edit later
-            email=email,
-            employee_code=emp_code
-        )
+        if User.objects.filter(username=username).exists():
+            return render(request, 'core/signup.html', {'error': 'Username already exists. Please choose another'})
+        
+        if User.objects.filter(email=email).exists():
+            return render(request, 'core/signup.html', {'error': 'Sorry email already in use. Please use a different email address'})
+        
+        try:
+            with transaction.atomic():
+                 user = User.objects.create_user(
+                     username=username,
+                     password=password,
+                     email=email
+                 )
 
-        # 4️⃣ Send email to user with employee code
-        send_mail(
-            'Your Employee Code',
-            f'Hello {username}, your employee code is {emp_code}.',
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=True,
-        )
-
-        # 5️⃣ Authenticate and login the user immediately
-        user = authenticate(username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect('homepage')
-
+                 Employee.objects.get_or_create(
+                    user=user,
+            
+                    name='',    
+                    email=email,     
+                     
+                 )
+                 
+        except IntegrityError as e:
+            print("INTEGRITY ERROR >>>", e)
+            return render(request, 'core/signup.html', {
+                'error': 'Email or employee code already exists'
+            })
+            
+        except Exception as e:
+            print("SIGNUP ERROR >>>", e)
+            return render(request, 'core/signup.html', {
+                'error': 'An error occurred during registration. Please try again.'
+            })
+            
+        login(request, user)
+        return redirect('edit_profile')
     return render(request, 'core/signup.html')
-
+        
+        
 def logout_view(request):
     logout(request)  # logs out the user
     return redirect('homepage')  # redirect to homepag
 
 
-
-
-# @login_required
-# def edit_profile(request):
-#     try:
-#         employee = request.user.employee
-#     except Employee.DoesNotExist:
-#         return redirect('homepage')
-
-#     if request.method == 'POST':
-#         form = EmployeeEditForm(request.POST, request.FILES, instance=employee)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('homepage')
-#     else:
-#         form = EmployeeEditForm(instance=employee)
-
-#     return render(request, 'core/edit_profile.html', {'form': form})
-
-
-
-# @login_required
-# def delete_profile_image(request):
-#     employee = request.user.employee  # Assuming OneToOneField from User to Employee
-#     if employee.profile_image:
-#         employee.profile_image.delete(save=True)  # deletes file and clears field
-#     return JsonResponse({'status': 'success'})
