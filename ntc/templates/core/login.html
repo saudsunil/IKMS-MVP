@@ -6,18 +6,24 @@
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+         h1 {
+         text-align: center;
+         color: white;
+            margin-top: 15px;
+       }
         body {
-            background-color: #f0f4f8;
+            background-color: #0c2c5cff;
         }
         .card-login {
             max-width: 400px;
-            margin: 80px auto;
+            margin: 30px auto;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+         
         }
         .card-header {
-            background-color: #007bff;
+            background-color: #0948a7ff;
             color: white;
             text-align: center;
             font-weight: bold;
@@ -28,14 +34,14 @@
             cursor: pointer;
             position: absolute;
             right: 15px;
-            top: 50%;
+            top: 70%;
             transform: translateY(-50%);
             color: #6c757d;
         }
     </style>
 </head>
 <body>
-
+    <h1>Internal Knowledge <br>Base Management System</h1>
 <div class="card card-login">
     <div class="card-header">Login</div>
     <div class="card-body">
@@ -55,7 +61,7 @@
                     👁
                 </span>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #0948a7ff;">Login</button>
         </form>
         <p class="text-center mt-3">Don't have an account? 
             <a href="{% url 'signup' %}">Signup</a>

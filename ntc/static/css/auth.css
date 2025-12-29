@@ -1,0 +1,40 @@
+
+body {
+            background-color: #f0f4f8;
+        }
+        .card-signup {
+            max-width: 400px;
+            margin: 80px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            padding: 20px;
+        }
+        .toggle-password {
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+
+
+        
+    
+        .card-login {
+            max-width: 400px;
+            margin: 80px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+     

@@ -1,3 +1,19 @@
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrfToken = getCookie('csrftoken');  // read CSRF token from cookie
 
 const profileInput = document.getElementById('profile_image_input');
 const profilePreview = document.getElementById('profile_image_preview');
@@ -11,10 +27,11 @@ document.getElementById('delete_image').addEventListener('click', function(e){
     e.preventDefault();
     fetch("{% url 'delete_profile_image' %}", {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Accept': 'application/json',
-        },
+       headers: {
+    'X-CSRFToken': csrfToken,
+    'Accept': 'application/json',
+},
+
     })
     .then(res => res.json())
     .then(data => {

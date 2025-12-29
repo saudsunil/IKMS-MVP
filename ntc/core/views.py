@@ -80,14 +80,7 @@ def signup_view(request):
                      password=password,
                      email=email
                  )
-
-                 Employee.objects.get_or_create(
-                    user=user,
-            
-                    name='',    
-                    email=email,     
-                     
-                 )
+                
                  
         except IntegrityError as e:
             print("INTEGRITY ERROR >>>", e)

@@ -50,7 +50,7 @@ def edit_profile(request):
         form = EmployeeEditForm(request.POST, request.FILES, instance=employee)
         if form.is_valid():
             form.save()
-            return redirect('homepage')
+            return redirect('employee_profile', id=employee.id)
     else:
         form = EmployeeEditForm(instance=employee)
 

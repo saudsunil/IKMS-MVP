@@ -8,6 +8,8 @@ def create_employee(sender, instance, created, **kwargs):
     if created:
         Employee.objects.create(
             user=instance,
-            name=instance.username,
-            email=instance.email
+            name='',
+            email=instance.email,
+            employee_code=f"EMP{instance.id:05d}"
         )
+        
