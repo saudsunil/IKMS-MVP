@@ -12,50 +12,83 @@ from django.urls import reverse
 def write_article(request):
     employee = getattr(request.user, "employee", None)
     if not employee:
-        return JsonResponse({"success": False, "errors": "You are not allowed to write articles."})
+        return JsonResponse({"success": False, "errors": "Not allowed"})
 
-    if request.method == "POST":
-        form = ArticleForm(request.POST, request.FILES)
-        action = request.POST.get("action", "draft")  # default to draft
+    if request.method != "POST":
+        return JsonResponse({"success": False}, status=400)
 
-        if form.is_valid():
-            article = form.save(commit=False)
-            article.author = employee
+    action = request.POST.get("action", "draft")
+    draft_id = request.POST.get("draft_id")
 
-            # Set status
-            if action == "publish":
-                if not article.title or not article.content:
-                    return JsonResponse({
-                        "success": False,
-                        "errors": "Title and content required for publishing"
-                    })
-                article.status = Article.PUBLISHED
-            else:
-                article.status = Article.DRAFT
+    if draft_id:
+        try:
+            article = Article.objects.get(id=draft_id, author=employee)
+        except Article.DoesNotExist:
+            article = Article(author=employee)
+    else:
+        article = Article(author=employee)
 
-            article.save()
+    form = ArticleForm(request.POST, request.FILES, instance=article)
 
-            # Response for frontend
-            if action == "draft":
-                return JsonResponse({
-                    "success": True,
-                    "draft_id": article.id,
-                    "message": "Draft saved"
-                })
-            else:
-                return JsonResponse({
-                    "success": True,
-                    "redirect": reverse("homepage"),
-                    "message": "Published successfully"
-                })
-
-        # Invalid form
+    if not form.is_valid():
         return JsonResponse({"success": False, "errors": form.errors})
 
-    else:
-        form = ArticleForm()
+    article = form.save(commit=False)
+    article.author = employee
 
-    return render(request, "base.html", {"form": form, "employee": employee})
+    if action == "publish":
+        if not article.title.strip() or not article.content.strip():
+            return JsonResponse({
+                "success": False,
+                "errors": "Title and content required"
+            })
+        article.status = Article.PUBLISHED
+    else:
+        article.status = Article.DRAFT
+
+    article.save()
+    form.save_m2m()
+
+    return JsonResponse({
+        "success": True,
+        "draft_id": article.id,
+        "message": "Published" if action == "publish" else "Draft saved"
+    })
+
+
+@login_required
+def get_latest_draft(request):
+    employee = getattr(request.user, "employee", None)
+
+    # 🔒 SAFETY CHECK
+    if not employee:
+        return JsonResponse({
+            "success": False,
+            "reason": "User has no employee profile"
+        })
+
+    article = (
+        Article.objects
+        .filter(author=employee, status=Article.DRAFT)
+        .order_by('-id')
+        .first()
+    )
+
+    if not article:
+        return JsonResponse({'success': False})
+
+    images = []
+    if article.cover_image:
+        images.append(article.cover_image.url)
+
+    return JsonResponse({
+        'success': True,
+        'id': article.id,
+        'title': article.title or '',
+        'content': article.content or '',
+        'category': article.category or '',
+        'images': images,
+    })
 
 
 def article_list(request):

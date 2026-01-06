@@ -5,38 +5,65 @@
 <link rel="stylesheet" href="{% static 'css/articlecard.css' %}">
 <link rel="stylesheet" href="{% static 'css/addcomment.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+
 {% endblock %}
 {% block content %}
    <!-- or whatever column width you want -->
     
-    <div class="col-md-14 ">
+  <div class="profile-header">
+    
+    {% if employee.profile_image %}
+      <img src="{{ employee.profile_image.url }}" class="profile-img">
+    {% else %}
+      <div class="profile-img profile-placeholder">👤</div>
+    {% endif %}
 
-      <!-- Profile Card -->
-      <div class="profile-card mb-3 p-6 d-flex align-items-center">
-        {% if employee.profile_image %}
-          <img src="{{ employee.profile_image.url }}" class="profile-img me-3">
-        {% else %}
-          <div class="profile-img d-flex align-items-center justify-content-center bg-secondary text-white me-3">
-            👤
-          </div>
-        {% endif %}
+    <div class="profile-info">
+      <h4 class="mb-1">{{ employee.name }}</h4>
+      <p class="mb-0 text-muted">{{ employee.position }}</p>
+      <p class="mb-0 small">{{ employee.department }} | {{ employee.office }}</p>
 
-        <div>
-          <h4 class="mb-1">{{ employee.name }}</h4>
-          <p class="mb-0 text-muted">{{ employee.position }}</p>
-          <p class="mb-0 small">{{ employee.department }} | {{ employee.office }}</p>
+     
+    </div>
+    <div class="profile-edit-button">
+     {% if request.user == employee.user %}
+        <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary mt-2">
+          Edit Profile
+        </a>
+      {% endif %}
+      </diV>
 
-          {% if request.user == employee.user %}
-            <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary mt-2">
-              Edit Profile
-            </a>
-          {% endif %}
-        </div>
-      </div>
+</div>
+
  
+ <hr>
+
+ <!-- Write Article Box -->
+{% if request.user.is_authenticated %}
+<div class="write-article-box" id="openWriteArticle">
+    {% if employee.profile_image %}
+        <img src="{{ employee.profile_image.url }}" class="write-avatar">
+    {% else %}
+        <div class="write-avatar placeholder">👤</div>
+    {% endif %}
+
+    <div class="write-placeholder">
+        Write article as {{employee.name}}...
+    </div>
+
+    <div class="write-plus">+</div>
+</div>
+
+{% endif %}
+
+
+<hr>
+
+
       <!-- Articles -->
-      <div>
-        <h5 class="mb-3">Articles by {{ employee.name }}</h5>
+      <div >
+        <h5 class="mb-3" style="text-align: center;">Articles by {{ employee.name }}</h5>
         <div class="filter-buttons">
     <button class="filter-btn active" data-type="All">All</button>
     <button class="filter-btn" data-type="General">General</button>
@@ -46,7 +73,9 @@
         {% if articles %}
         <div class="articles-container">
           {% for article in articles %}
+          {% if article.status == 'published' %}
                    {% include "articles/article_card.html" with article=article %}
+          {% endif %}
           {% endfor %}
         </div>
         {% else %}
@@ -65,6 +94,9 @@
 {% block extra_js %}
 <script src="{% static 'js/articlecard.js' %}"></script>
 <script src="{% static 'js/addcomment.js' %}"></script>
+
+
+
 {% endblock %}
 
 

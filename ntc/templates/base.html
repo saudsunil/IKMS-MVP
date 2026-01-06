@@ -23,7 +23,7 @@
   <div class="row">
 
     <!-- Left Sidebar -->
-    <div class="col-3 sidebar" style="background-color: #0c2c5cff;">
+    <div class="col-3 sidebar" >
       {% block left_sidebar %}
      
      
@@ -51,16 +51,17 @@
     <i class="fa-solid fa-newspaper"></i> All Articles
   </a>
   
+            
+
 </ul>
- {% if employee %}
+
         <div class="text-center mt-2">
           
          
-          <a href="{% url 'logout' %}" class="btn btn-danger btn-sm mt-2 w-100">Logout</a>
+          <a href="{% url 'login' %}" class="btn btn-danger btn-sm mt-2 w-100">Logout</a>
         </div>
-      {% else %}
-        <div class="text-center"><p>Please <a href="{% url 'login' %}">login</a></p></div>
-      {% endif %}
+     
+
 
       <br>
   <button type="button" class="btn btn-primary w-100 mb-2" id="WriteArticleBtn">Write Article</button>
@@ -80,7 +81,10 @@
 </div>
 
 <!-- WRITE ARTICLE MODAL (hidden initially) -->
-{% include 'articles/write_article.html'%}
+{% if request.user.is_authenticated %}
+  {% include "articles/write_article.html" %}
+{% endif %}
+
 
 <script src="{% static 'js/addcomment.js' %}"></script>
 <script src="{% static 'js/base.js' %}"></script>

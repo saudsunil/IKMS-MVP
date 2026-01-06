@@ -1,10 +1,10 @@
 
 
 /* page layout */
-body { background: #0c2c5cff; }
+body { background: #fff; }
 .sidebar {
     height: 100vh;
-    background: #0c2c5cff;
+    background: #fff;
     border-right: 1px solid #ddd;
     padding: 20px;
     position: sticky;

@@ -1,27 +1,97 @@
-.profile-card {
-    background-color: #fff;       /* white background */
-    width: calc(100% + 30px);     /* extend beyond padding of parent */
-    margin-left: -25px;           /* offset parent's padding */
-    border: 1px solid #ddd;       /* subtle border */
-    border-radius: 0;             /* square corners */
-    padding: 15px;                /* inner spacing */
-    display: flex;                /* horizontal layout */
-    align-items: center;          /* vertical alignment */
-    box-sizing: border-box;       /* include padding in width */
-    margin-bottom: 15px;  
-   
-    margin-top:-25px;      /* spacing below */
+
+.profile-header {
+    display: flex;
+    align-items: center;   /* vertical alignment */
+    gap: 20px;             /* space between image & text */
 }
 
 
+.profile-placeholder {
+    background: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-info {
+  
+    flex-direction: column;  /* stack text vertically */
+    margin-top:50px;
+    margin-left:-5px;
+    
+  
+}
+
+.profile-edit-button{
+margin-top:-5px;
+margin-left:20px;
+}
+
+
+
+
  .profile-img {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     border-radius:50% ; /* square image corners, remove if you want circle */
     object-fit: cover;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
+   
+    margin-left:40px;
+    margin-top:40px;
+}
+.write-article-box {
+    background: #fff;
+    border: 1.5px solid #0d6efd;
+    border-radius: 50px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 600px;
+    margin: 20px auto;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.write-article-box:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.write-article-box.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.write-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+
+}
+
+.write-avatar.placeholder {
+    background: #6c757d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.write-placeholder {
+    flex: 1;
+    color: #777;
+}
+
+.write-plus {
+    font-size: 28px;
+    color: #0d6efd;
     margin-right: 20px;
-    margin-left:30px;
+    margin-bottom:4px;
+    
 }
 
 

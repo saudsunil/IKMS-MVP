@@ -18,3 +18,41 @@ function getCookie(name) {
     return cookieValue;
 }
 const csrftoken = getCookie('csrftoken');
+
+(function () {
+    if (window.writeArticleInitialized) return;
+    window.writeArticleInitialized = true;
+
+    const modal = document.getElementById('writeArticleModal');
+    if (!modal) return;
+
+    const closeBtn = document.getElementById('modalCloseBtn');
+
+    function openModal() {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    // Sidebar button
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.open-write-article')) {
+            e.preventDefault();
+            openModal();
+        }
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+})();

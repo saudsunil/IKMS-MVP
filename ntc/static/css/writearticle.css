@@ -3,7 +3,7 @@
 #writeArticleModal {
     position: fixed;
     inset: 0;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     background: rgba(0,0,0,0.45);
@@ -12,7 +12,7 @@
     transition: opacity .18s ease;
     z-index: 2000;
 }
-#writeArticleModal.show { visibility: visible; opacity: 1; }
+#writeArticleModal.show { visibility: visible; opacity: 1; display: flex; }
 
 .modal-content-custom {
     width: 540px;

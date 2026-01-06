@@ -13,7 +13,7 @@ from articles.models import Article
 
 def profile(request, id):
     employee = get_object_or_404(Employee, id=id)
-    articles = Article.objects.filter(author=employee).order_by('-created_at').prefetch_related(
+    articles = Article.objects.filter(author=employee, status=Article.PUBLISHED).order_by('-created_at').prefetch_related(
         'comments',
         'comments__author',
     )
