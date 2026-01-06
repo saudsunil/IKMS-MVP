@@ -16,7 +16,7 @@
     {% if employee.profile_image %}
       <img src="{{ employee.profile_image.url }}" class="profile-img">
     {% else %}
-      <div class="profile-img profile-placeholder">👤</div>
+      <div class="profile-img profile-placeholder"> <i class="fa-solid fa-user fa-lg"></i></div>
     {% endif %}
 
     <div class="profile-info">
@@ -28,16 +28,14 @@
     </div>
     <div class="profile-edit-button">
      {% if request.user == employee.user %}
-        <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary mt-2">
-          Edit Profile
+        <a href="{% url 'edit_profile' %}" >
+         <i class="fa-solid fa-pen-to-square"></i> Edit Profile
         </a>
       {% endif %}
       </diV>
 
 </div>
 
- 
- <hr>
 
  <!-- Write Article Box -->
 {% if request.user.is_authenticated %}
@@ -45,7 +43,7 @@
     {% if employee.profile_image %}
         <img src="{{ employee.profile_image.url }}" class="write-avatar">
     {% else %}
-        <div class="write-avatar placeholder">👤</div>
+        <div class="write-avatar placeholder"> <i class="fa-solid fa-user fa-lg"></i></div>
     {% endif %}
 
     <div class="write-placeholder">
@@ -63,7 +61,7 @@
 
       <!-- Articles -->
       <div >
-        <h5 class="mb-3" style="text-align: center;">Articles by {{ employee.name }}</h5>
+        <h5 class="mb-3" style="text-align: center;">Your Articles</h5>
         <div class="filter-buttons">
     <button class="filter-btn active" data-type="All">All</button>
     <button class="filter-btn" data-type="General">General</button>

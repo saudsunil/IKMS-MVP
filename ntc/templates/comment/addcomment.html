@@ -20,14 +20,14 @@
   <div class="comment-list" id="comment-list-{{ article.id }}">
     {% for c in article.top_comments %}
     <div class="comment-row" data-comment-id="{{ c.id }}" data-author-name="{{ c.author.name }}">
-      
+      <a href="{% url 'employee_profile' c.author.id %}" class="comment-author d-flex align-items-center gap-2">
       <!-- Avatar -->
       {% if c.author.profile_image %}
         <img class="comment-avatar" src="{{ c.author.profile_image.url }}" alt="{{ c.author.name }}">
       {% else %}
         <div class="comment-avatar placeholder"><i class="fa-solid fa-user"></i></div>
       {% endif %}
-
+      </a>
       <!-- Comment Container -->
       <div class="comment-container">
         <div class="comment-card">
@@ -63,6 +63,7 @@
   <div class="reply-list" id="replies-{{ c.id }}" style="display:none;">
     {% for r in c|all_replies_flat %}
       {% include "comment/reply.html" with reply=r %}
+
     {% endfor %}
   </div>
   <button type="button" class="toggle-replies-btn" data-parent-id="{{ c.id }}" style="{% if c|all_replies_flat|length == 0 %}display:none{% endif %}">
@@ -91,9 +92,19 @@
 
 
 
-    <div class="input-wrapper">
+    <div class="input-wrapper d-flex align-items-center gap-2">
+      <div class="comment-avatar-wrapper">
+            {% if request.user.employee.profile_image %}
+                <img src="{{ request.user.employee.profile_image.url }}" 
+                     class="comment-user-avatar rounded-circle" alt="You" style="width:36px;height:36px;object-fit:cover;">
+            {% else %}
+                <i class="fa-solid fa-user comment-user-avatar"></i>
+            {% endif %}
+      </div>
+  <div class="comment-input-area position-relative flex-grow-1">
       <input type="text" name="comment" placeholder="Write a comment" autocomplete="off" required>
-      <button class="comment-btn" type="submit" title="Post"><i class="fa-solid fa-paper-plane"></i></button>
+      <button class="comment-btn" type="submit" title="Post" ><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
     </div>
   </form>
 </div>

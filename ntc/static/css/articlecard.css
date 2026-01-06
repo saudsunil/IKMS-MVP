@@ -12,16 +12,17 @@
     padding: 10px 0;
     border: none;
     border-radius: 8px;
-    background-color: #0d6efd;
+    background-color: #004C97;
     color: #fff;
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
-.filter-btn:hover { background-color: #0b5ed7; }
+.filter-btn:hover { border: 1px solid #EBB318;  }
 .filter-btn.active {
-    background-color: #0b5ed7;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    color: #EBB318; 
+    border: 2px solid #EBB318
+    
 }
 
 /* Articles Container */
@@ -33,7 +34,7 @@
 
 /* Article Card */
 .article-card {
-    width: 100%;
+    width: 80%;
     max-width: 1000px;
     margin: auto;
     border-radius: 12px;
@@ -55,8 +56,8 @@
     align-items: center;
 }
 .author-img, .author-placeholder {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #6c757d;
     color: white;
@@ -67,7 +68,19 @@
     margin-right: 10px;
     object-fit: cover;
 }
-.author-details { display: flex; flex-direction: column; font-size: 14px; }
+.author-details { display: flex; flex-direction: column; margin-bottom:3px;}
+.author-name{
+    font-weight:600;
+    color: #222;
+    font-size: 14px;
+
+    
+}
+
+.article-time {
+    color: #777;
+    font-size: 11px;
+}
 
 
 /* Title */
@@ -75,17 +88,17 @@
     text-align: center;
     margin: 10px 0;
     font-weight: 500;
-    font-size: 20px;
+    font-size: 18px;
 }
 
 /* Cover Image */
 .cover-image-wrapper { width: 100%; }
-.cover-image { width: 100%; height: auto; display: block; }
+.cover-image { width: 100%; height: 80%; display: block; }
 
 /* Article Type */
 .article-type {
     text-align: center;
-    font-size: 22px;
+    font-size: 18px;
     color: #6c757d;
     margin-bottom: 5px;
 }
@@ -94,8 +107,9 @@
 .article-preview {
     position: relative;
     margin-bottom: 5px;
-    margin-top:15px;
+    margin-top:10px;
     margin-left:15px;
+    font-size: 15px;;
 }
 
 .article-text {

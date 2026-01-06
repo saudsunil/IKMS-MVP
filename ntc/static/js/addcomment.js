@@ -42,7 +42,7 @@
         const days = Math.floor(hrs/24);
         if (days < 30) return days+'d';
         const months = Math.floor(days/30);
-        if (months < 12) return months+'m';
+        if (months < 12) return months+'mo';
         return Math.floor(months/12)+'y';
     }
 
@@ -269,9 +269,16 @@ if (countEl) {
         const sendBtn = form.querySelector('.comment-btn');
         const replyingIndicator = form.querySelector('.replying-indicator');
 
-        input.addEventListener('input', () => {
-            sendBtn.classList.toggle('visible', input.value.trim() !== '');
-        });
+       input.addEventListener('input', () => {
+    const hasText = input.value.trim().length > 0;
+
+    // Toggle your visible class if you want any visual effect
+    sendBtn.classList.toggle('visible', hasText);
+
+    // Enable/disable the button
+    sendBtn.disabled = !hasText;
+});
+
 
         // ❌ cancel
         form.addEventListener('click', e => {

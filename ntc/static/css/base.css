@@ -4,14 +4,61 @@
 body { background: #fff; }
 .sidebar {
     height: 100vh;
-    background: #fff;
-    border-right: 1px solid #ddd;
-    padding: 20px;
+    background-color : #004C97;
+    border-right: 1px solid #EBB318;
+    padding: 10px;
     position: sticky;
     top: 0;
 }
-.profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #5a5a5a; }
-.feed-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+
 
 /* top notification area */
 #alertBox { display: none; position: sticky; top: 10px; z-index: 1200; }
+.sidebar .list-group-item {
+    background-color: transparent; /* remove default bootstrap bg */
+    color: white;                  /* text white */
+    border: none;   
+    border-bottom: 1px solid #EBB31B ; 
+    border-top: 1px  solid #EBB31B;            /* remove borders */
+}
+.sidebar .list-group-item.active a{
+    color:#EBB31B
+}
+.sidebar .list-group-item:hover,
+.sidebar .list-group-item:focus {
+    background-color: rgba(255,255,255,0.1); /* subtle hover effect */
+    color: white;
+}
+
+/* Sidebar logo */
+.sidebar-logo {
+    background-color: #004C97; /* NTC blue */
+   
+  
+ 
+  ;
+}
+.ntc-logo {
+    max-width: 90px;
+    height: auto;
+    background: transparent;
+    display:block;
+    margin-left:100px;
+    margin-top: -10px;
+    justify-content: center ;
+  
+
+    
+    
+}
+
+
+.sidebar-logo p{
+    text-align:center;
+    font-size: 26px;
+    margin-top: -20px;
+    color:#EBB31B ;
+    margin-top: 0px;
+   
+    
+}

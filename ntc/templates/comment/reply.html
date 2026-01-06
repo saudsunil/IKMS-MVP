@@ -1,12 +1,13 @@
 
 
 <div class="reply-row" data-reply-id="{{ reply.id }}" {% if reply.parent %}data-parent-id="{{ reply.parent.id }}"{% endif %}>
+   <a href="{% url 'employee_profile' reply.author.id %}" class="reply-author d-flex align-items-center gap-2">
   {% if reply.author.profile_image %}
     <img class="reply-avatar" src="{{ reply.author.profile_image.url }}" alt="{{ reply.author.name }}">
   {% else %}
     <div class="reply-avatar placeholder"><i class="fa-solid fa-user"></i></div>
   {% endif %}
-
+   </a>
   <div class="reply-container">
     <div class="reply-card">
       <div class="reply-meta">

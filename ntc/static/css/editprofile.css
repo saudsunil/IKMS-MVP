@@ -7,7 +7,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            border: 3px solid #0d6efd;
+            border:  2px solid #EBB318; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,11 +24,11 @@
             transform: translate(-8%, -8%);
             width: 32px;
             height: 32px;
-            background: #0d6efd;
-            color: white;
+            background:  #004C97;;
+        
             font-size: 20px;
             border-radius: 50%;
-            border: 2px solid white;
+            border: 1px solid #EBB318;;
             display: flex;
             justify-content: center;
             align-items: center;

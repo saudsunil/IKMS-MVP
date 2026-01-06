@@ -1,8 +1,27 @@
 
 .profile-header {
+    background-color: #004C97;     /* NTC theme */
+    color: #ffffff;
+    padding: 20px;
+    /* Full bleed */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-top: -1.5rem;
     display: flex;
-    align-items: center;   /* vertical alignment */
-    gap: 20px;             /* space between image & text */
+    align-items: center;
+    gap: 20px;
+}
+
+/* Text tweaks for contrast */
+.profile-header h4,
+.profile-header p {
+    color: #ffffff;
+}
+
+/* Muted text still readable */
+.profile-header .text-muted,
+.profile-header .small {
+    color: rgba(255, 255, 255, 0.85) !important;
 }
 
 
@@ -17,8 +36,8 @@
 .profile-info {
   
     flex-direction: column;  /* stack text vertically */
-    margin-top:50px;
-    margin-left:-5px;
+    margin-top:30px;
+    margin-left:0px;
     
   
 }
@@ -26,7 +45,34 @@
 .profile-edit-button{
 margin-top:-5px;
 margin-left:20px;
+border-radius: 8px;
+border: 1px solid white;
+padding:4px;
+
+
+
+
 }
+
+.profile-edit-button:hover{
+    border: 1px solid #EBB318; 
+  
+}
+
+.profile-edit-button:hover a{
+    color: #EBB318;
+ 
+    
+}
+
+.profile-edit-button a{
+    color: white;
+    text-decoration: none;
+    
+}
+
+
+
 
 
 
@@ -36,14 +82,13 @@ margin-left:20px;
     height: 150px;
     border-radius:50% ; /* square image corners, remove if you want circle */
     object-fit: cover;
-    border: 2px solid #ccc;
-   
+    border: 2px solid #EBB318;
     margin-left:40px;
-    margin-top:40px;
+    margin-top:20px;
 }
 .write-article-box {
     background: #fff;
-    border: 1.5px solid #0d6efd;
+    border: 1.5px solid #EBB318;
     border-radius: 50px;
     padding: 10px 12px;
     display: flex;
@@ -88,7 +133,7 @@ margin-left:20px;
 
 .write-plus {
     font-size: 28px;
-    color: #0d6efd;
+    color: #004C97;
     margin-right: 20px;
     margin-bottom:4px;
     

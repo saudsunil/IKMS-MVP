@@ -101,6 +101,6 @@ def signup_view(request):
         
 def logout_view(request):
     logout(request)  # logs out the user
-    return render(request, 'core/login.html')  # redirect to homepage
+    return redirect('login')  # redirect to homepage
 
 

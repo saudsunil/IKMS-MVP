@@ -9,15 +9,18 @@
         <!-- Article Header: Author + Delete -->
         <div class="article-header">
             <div class="author-info">
+                <a href="{% url 'employee_profile' article.author.id %}" class="author-link d-flex align-items-center gap-2">
                 {% if article.author.profile_image %}
-                    <img src="{{ article.author.profile_image.url }}" class="author-img">
+                    <img src="{{ article.author.profile_image.url }}" class="author-img rounded-circle">
                 {% else %}
-                    <div class="author-placeholder">👤</div>
+                    <div class="author-placeholder"> <i class="fa-solid fa-user fa-lg"></i></div>
                 {% endif %}
+                </a>
                 <div class="author-details">
-                    <strong>{{ article.author.name }}</strong>
-                    <small>{{ article.created_at|date:"F j, Y, g:i a" }}</small>
+            <span class="author-name" data-username="{{ article.author.username }}">{{ article.author.name }}</span>
+                    <small class="article-time" data-iso="{{ article.created_at|date:'c' }}"></small>
                 </div>
+           
             </div>
 
             
