@@ -26,8 +26,9 @@
 
 
 .profile-placeholder {
-    background: #6c757d;
-    color: white;
+    background: #eee;
+    color: #999;
+    font-size:60px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -82,7 +83,7 @@ padding:4px;
     height: 150px;
     border-radius:50% ; /* square image corners, remove if you want circle */
     object-fit: cover;
-    border: 2px solid #EBB318;
+   
     margin-left:40px;
     margin-top:20px;
 }
@@ -96,6 +97,7 @@ padding:4px;
     gap: 12px;
     max-width: 600px;
     margin: 20px auto;
+    
     cursor: pointer;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
@@ -119,8 +121,8 @@ padding:4px;
 }
 
 .write-avatar.placeholder {
-    background: #6c757d;
-    color: #fff;
+    background: #ddd;
+    color: #666;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,7 +130,7 @@ padding:4px;
 
 .write-placeholder {
     flex: 1;
-    color: #777;
+    color: #555;
 }
 
 .write-plus {

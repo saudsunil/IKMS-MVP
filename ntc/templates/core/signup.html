@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +13,7 @@
             margin-top: 15px;
        }
         body {
-            background-color: #0c2c5cff;
+            background-color: #004C97;
         }
         .card-signup {
             max-width: 400px;
@@ -20,14 +21,15 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(38, 14, 145, 0.15);
+            margin-top: -0.9rem;
         }
         .card-header {
-            background-color: #0948a7ff;
+            background-color: #004C97;
             color: white;
             text-align: center;
             font-weight: bold;
-            font-size: 1.5rem;
-            padding: 20px;
+            font-size: 1.3rem;
+            padding: 10px;
         }
         .toggle-password {
             cursor: pointer;
@@ -37,10 +39,45 @@
             transform: translateY(-50%);
             color: #6c757d;
         }
+         .card-body{
+       padding-bottom: 3px;
+       }
+       .form-label{
+       font-size:14px;
+       font-weight: 500;
+      
+       }
+       .form-control{
+        padding: 5px;
+       }
+       .form-control:hover{
+       
+        border: 1px solid #EBB318; 
+       }
+        .form-control:focus{
+         border-color: #EBB31B; /* NTC Yellow */
+    box-shadow: 0 0 0 0.15rem rgba(235, 179, 24, 0.25);
+       }
+
+        .ntc-logo{
+        width:100px;
+        background:transparent;
+    }
+    .sidebar-logo p{
+          color:#EBB31B ;
+          font-size: 35px;
+          margin-top:-10px;
+    }
     </style>
 </head>
 <body>
-    <h1>Internal Knowledge <br>Base Management System</h1>
+  <div class="sidebar-logo text-center py-3">
+    <img src="{% static 'images/Nepal_Telecom_Logo.webp' %}"
+         alt="Nepal Telecom"
+         class="ntc-logo"> 
+         <p> Internal Knowledge Management System</p>
+        
+</div>
 <div class="card card-signup">
     <div class="card-header">Signup</div>
     <div class="card-body">
@@ -49,32 +86,32 @@
         {% endif %}
         <form method="POST">
             {% csrf_token %}
-            <div class="mb-3 position-relative">
+            <div class="mb-2 position-relative">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username" required>
             </div>
             
             <!-- New Email Field -->
-            <div class="mb-3 position-relative">
+            <div class="mb-2 position-relative">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" name="email" required>
             </div>
 
-            <div class="mb-3 position-relative">
+            <div class="mb-2 position-relative">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
-                <span class="toggle-password" onclick="togglePassword('password')">👁</span>
+                <span class="toggle-password" onclick="togglePassword('password')"><i class="fa-regular fa-eye-slash"></i></span>
             </div>
-            <div class="mb-3 position-relative">
+            <div class="mb-2 position-relative">
                 <label for="confirm_password" class="form-label">Confirm Password</label>
                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                <span class="toggle-password" onclick="togglePassword('confirm_password')">👁</span>
+                <span class="toggle-password" onclick="togglePassword('confirm_password')"><i class="fa-regular fa-eye-slash"></i></span>
             </div>
 
-            <button type="submit" class="btn btn-success w-100" style="background-color: #0948a7ff;">Signup</button>
+            <button type="submit" class="btn btn-success w-100" style="background-color: #004C97;  padding: 5px; margin-top:7px;">Signup</button>
         </form>
         <p class="text-center mt-3">Already have an account? 
-            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'login' %}" style="color: #EBB31B ;">Login</a>
         </p>
     </div>
 </div>

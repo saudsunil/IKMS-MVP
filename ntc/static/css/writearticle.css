@@ -70,12 +70,14 @@ textarea { min-height:100px; resize:vertical; }
     gap: 6px;
     cursor: pointer;
     font-size: 14px;
-    color: #0d6efd;
+    color: #004C97; 
 }
 
 /* Camera Icon */
-.camera-icon {
-    font-size: 25px;
+.camera-icon  {
+    font-size: 20px;
+    margin-left:7px;
+    margin-top:-7px;
 }
 
 /* Image Preview Container */
@@ -101,7 +103,22 @@ textarea { min-height:100px; resize:vertical; }
     display:inline-flex; align-items:center; justify-content:center;
     width:22px; height:22px; background:#dc3545; color:#fff; border-radius:50%; cursor:pointer; font-size:14px;
 }
+.btn-primary:hover{
+    color:#EBB318; 
+    border:1px solid#EBB318; 
 
+}
+ .btn-outline-secondary{
+        color: #fff; 
+        border: 1px solid #555;
+        background: #6c757d;
+       
+       }
+       .btn-outline-secondary:hover{
+        color:#EBB318;
+        border: 1px solid #EBB318;
+        background: #555;
+       }
 /* buttons */
 .modal-actions { display:flex; gap:10px; margin-top:12px; }
 .modal-actions .btn { flex:1; }

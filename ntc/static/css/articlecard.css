@@ -59,12 +59,12 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #6c757d;
-    color: white;
+    background: #eee;
+    color: #999;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 22px;
+    font-size: 16px;
     margin-right: 10px;
     object-fit: cover;
 }

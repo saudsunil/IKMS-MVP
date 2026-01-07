@@ -12,7 +12,7 @@
       {% if employee and employee.profile_image %}
         <img src="{{ employee.profile_image.url }}" class="profile-pic">
       {% else %}
-        <div class="profile-pic d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;">👤</div>
+        <div class="profile-pic d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;"><i class="fa-solid fa-user fa-lg"></i></div>
       {% endif %}
       <div>
         <strong>{% if employee %}{{ employee.name }}{% else %}Guest{% endif %}</strong><br>
@@ -62,7 +62,7 @@
       <!-- Actions -->
       <div class="modal-actions">
         <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary">Save as Draft</button>
-        <button type="submit" id="publishBtn" class="btn btn-primary">Publish</button>
+        <button type="submit" id="publishBtn" class="btn btn-primary" style="background:#004C97; ">Publish</button>
       </div>
     </form>
 

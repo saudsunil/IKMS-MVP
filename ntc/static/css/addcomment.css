@@ -345,7 +345,7 @@ background: #dbd7d7ff;
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #999;   /* default inactive color */
+    color: #555;   /* default inactive color */
     font-size: 18px;
     cursor: pointer;
     display: none; /* JS will toggle .visible */

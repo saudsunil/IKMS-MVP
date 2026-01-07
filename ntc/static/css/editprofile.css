@@ -1,21 +1,26 @@
+ body {
+            background-color: #004C97;
+        }
 
+       
         .profile-circle-wrapper {
             position: relative;
             display: inline-block;
         }
         .profile-circle {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            border:  2px solid #EBB318; 
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 48px;
-            color: white;
+            font-size: 46px;
+           
+            color: #fff;
             background-size: cover;
             background-position: center;
             cursor: pointer;
+            margin-top: -0.5rem;
         }
         .profile-upload-icon {
             position: absolute;
@@ -24,18 +29,126 @@
             transform: translate(-8%, -8%);
             width: 32px;
             height: 32px;
-            background:  #004C97;;
-        
+            background: #fff;
+            color: #004C97;
             font-size: 20px;
             border-radius: 50%;
-            border: 1px solid #EBB318;;
+            border: 1px solid #EBB318;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
         }
+      
         .text-center-wrapper {
             text-align: center;
             margin-bottom: 20px;
         }
+       
+       .card-header {
+            background: #004C97;;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            padding: 10px;
+        }
+         .card-body{
+         padding-bottom: 3px;
+          }
+       .btn-save{
+        background-color: #004C97;
+        color: #fff;
+        padding: 5px;
+       }
+       .btn-save:hover{
+        color:#EBB318;
+        border: 1px solid #EBB318;
+        background: #004C97;
+       }
+
+       .btn-cancel{
+        color: #fff; 
+        border: 1px solid #555;
+        background: #6c757d;
+       
+       }
+       .btn-cancel:hover{
+        color:#EBB318;
+        border: 1px solid #EBB318;
+        background: #555;
+       }
+
+       .card-body label{
+        font-size:14px;
+        margin-bottom: 5px;
+        font-weight: 500;
+       }
+       .card-body input{
+        padding: 5px;
+       }
+       .card-body input:focus,
+.card-body select:focus,
+.card-body textarea:focus {
+    border-color: #EBB31B; /* NTC Yellow */
+    box-shadow: 0 0 0 0.15rem rgba(235, 179, 24, 0.25);
+}
+
+.card-body input:hover{
+    border: 1px solid #EBB31B;
+}
+
+.dropdown-menu {
+  display:none;
+  position: absolute;
+
+ background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 1200;
+  width: 110px;
+  min-width: unset;
+
+  font-size: 12px;
+  line-height: 1;
+
+
+ 
+ 
   
+}
+
+.dropdown-menu i
+{
+  width: 16px;
+  font-size: 12px;
+  text-align: left;
+  margin-left:-0.5rem;
+  margin-right:3px;
+}
+.dropdown-menu button {
+  width: 100%;
+  display: flex;
+
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 7px;
+  font-size: 15px;
+  color: #555;
+
+  font-weight: normal;
+}
+#delete_image{
+  color: #e65d5dff;;
+ 
+}
+#delete_image:hover {
+  background: #ffe5e5;
+}
+#upload_new:hover{
+    background: #004C97;
+    color:#fff;
+}

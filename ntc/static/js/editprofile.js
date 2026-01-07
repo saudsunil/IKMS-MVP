@@ -25,21 +25,25 @@ document.getElementById('upload_new').addEventListener('click', function(e){
 
 document.getElementById('delete_image').addEventListener('click', function(e){
     e.preventDefault();
-    fetch("{% url 'delete_profile_image' %}", {
-        method: 'POST',
-       headers: {
-    'X-CSRFToken': csrfToken,
-    'Accept': 'application/json',
-},
+const deleteUrl = document
+    .getElementById('profile_image_preview')
+    .dataset.deleteUrl;
 
-    })
+fetch(deleteUrl, {
+    method: 'POST',
+    headers: {
+        'X-CSRFToken': csrfToken,
+        'Accept': 'application/json',
+    },
+})
+
     .then(res => res.json())
     .then(data => {
         if(data.status === 'success'){
             // Reset preview to placeholder
             profilePreview.style.backgroundImage = 'none';
             profilePreview.style.backgroundColor = '#6c757d';
-            profilePreview.innerHTML = '👤';
+            profilePreview.innerHTML =  '<i class="fa-solid fa-user fa-lg"></i>';
         }
     });
 });
