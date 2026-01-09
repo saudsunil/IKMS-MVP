@@ -597,7 +597,7 @@ formData.append('draft_id', draftIdInput.value);
                     modal.classList.remove('show');
                     modal.style.display = 'none';
                     window.location.reload();
-                }, 700);
+                }, 500);
             } else showAlert(data.errors || 'Error publishing', 'danger', 3000);
         })
         .catch(() => showAlert('Error publishing article', 'danger', 3000));

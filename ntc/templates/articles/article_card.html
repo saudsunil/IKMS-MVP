@@ -8,6 +8,8 @@
 
         <!-- Article Header: Author + Delete -->
         <div class="article-header">
+           
+
             <div class="author-info">
                 <a href="{% url 'employee_profile' article.author.id %}" class="author-link d-flex align-items-center gap-2">
                 {% if article.author.profile_image %}
@@ -22,6 +24,15 @@
                 </div>
            
             </div>
+             {% if request.user == article.author.user %}
+<div class="article-actions">
+    <button class="delete-article-btn"
+            data-article-id="{{ article.id }}"
+            title="Delete article">
+        <i class="fa-solid fa-trash"></i>
+    </button>
+</div>
+{% endif %}
 
             
         </div>
@@ -53,6 +64,21 @@
         {% include "comment/addcomment.html" with article=article %}
         
     </div>
+    <div id="deleteConfirmOverlay" class="delete-overlay hidden">
+    <div class="delete-card">
+        <p>Are you sure you want to delete this article?</p>
+
+        <div class="delete-actions">
+            <button  type="button" id="confirmDeleteBtn" class="btn-danger">
+                Delete
+            </button>
+            <button  type="button" id="cancelDeleteBtn" class="btn-cancel">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 
 
 

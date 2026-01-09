@@ -8,17 +8,25 @@
       <div class="close-button" id="modalCloseBtn" title="Close"  style="margin-top:-15px;">&times;</div>
     </div>
 
-    <div class="employee-info">
-      {% if employee and employee.profile_image %}
-        <img src="{{ employee.profile_image.url }}" class="profile-pic">
-      {% else %}
-        <div class="profile-pic d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;"><i class="fa-solid fa-user fa-lg"></i></div>
-      {% endif %}
-      <div>
-        <strong>{% if employee %}{{ employee.name }}{% else %}Guest{% endif %}</strong><br>
-
-      </div>
+   <div class="employee-info">
+  {% if request.user.is_authenticated and request.user.employee.profile_image %}
+    <img src="{{ request.user.employee.profile_image.url }}" class="profile-pic">
+  {% else %}
+    <div class="profile-pic d-flex justify-content-center align-items-center"
+         style="background:#6c757d;color:#fff;font-size:20px;">
+      <i class="fa-solid fa-user fa-lg"></i>
     </div>
+  {% endif %}
+
+  <div style="font-weight:500;">
+    {% if request.user.is_authenticated and request.user.employee %}
+      {{ request.user.employee.name }}
+    {% else %}
+      Guest
+    {% endif %}
+  </div>
+</div>
+
 
     <!-- form posts to write_article view (AJAX used) -->
     <form id="articleForm" method="POST" enctype="multipart/form-data" action="{% url 'write_article' %}">
@@ -38,7 +46,7 @@
         <option value="">Select Article Type</option>
 
           <option value="experience">Employee Experience</option>
-          <option value="samrika">Smarika</option>
+          <option value="smarika">Smarika</option>
           <option value="general">General</option>
         </select>
       </div>
@@ -61,8 +69,8 @@
 
       <!-- Actions -->
       <div class="modal-actions">
-        <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary">Save as Draft</button>
-        <button type="submit" id="publishBtn" class="btn btn-primary" style="background:#004C97; ">Publish</button>
+        <button type="button" id="saveDraftBtn" class="btn btn-outline-secondary"style="padding:5px;">Save as Draft</button>
+        <button type="submit" id="publishBtn" class="btn btn-primary" style="background:#004C97; padding:5px;">Publish</button>
       </div>
     </form>
 

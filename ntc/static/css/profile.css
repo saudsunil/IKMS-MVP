@@ -161,6 +161,8 @@ padding:4px;
     width: 100%;
 }
 
+#article-count::before { content: "("; }
+#article-count::after  { content: ")"; }
 
 /* Responsive */
 @media (max-width: 768px) {

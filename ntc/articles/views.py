@@ -96,10 +96,11 @@ def article_list(request):
     return render(request, "articles/list.html", {"articles": articles})
 
 
-
-def article_detail(request, id):
-    article = get_object_or_404(Article, id=id)
-    return render(request, "articles/detail.html", {"article": article})
+@login_required
+def delete_article(request, id):
+    article = get_object_or_404(Article, id=id, author=request.user.employee)
+    article.delete()
+    return JsonResponse({'status': 'success'})
 
 
 

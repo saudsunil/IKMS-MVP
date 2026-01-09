@@ -12,7 +12,7 @@ class Article(models.Model):
     CATEGORY_CHOICES = [
         ('none', 'Select Article Type'),
         ('experience', 'Employee Experience'),
-        ('samrika', 'Samrika'),
+        ('smarika', 'Smarika'),
         ('general', 'General'),
     ]
 

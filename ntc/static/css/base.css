@@ -60,3 +60,28 @@ body { background: #fff; }
    
     
 }
+.sidebar-menu .list-group-item {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    color: #fff;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hover */
+.sidebar-menu .list-group-item:hover {
+
+    color: #EBB31B;
+}
+
+/* Active */
+.sidebar-menu .list-group-item.active {
+    background-color: #EBB31B;
+    color: #004C97;
+    font-weight: 600;
+}
+
+/* Active icon */
+.sidebar-menu .list-group-item.active i {
+    color: #004C97;
+}

@@ -24,14 +24,17 @@ def profile(request, id):
     for article in articles:
      article.top_comments = article.comments.filter(parent__isnull=True).order_by('-created_at')
     
+    #add article count
+    article_count = articles.count()
     return render(request, 'employees/profile.html', {
         'employee': employee,
-        'articles': articles
+        'articles': articles,
+        'article_count': article_count
     })
 
 def employee_list(request):
     employees = Employee.objects.all()
-    return render(request, 'employees/list.html', {'employees': employees})
+    return render(request, 'employees/employeelist.html', {'employees': employees})
 
 
 

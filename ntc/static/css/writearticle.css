@@ -119,6 +119,25 @@ textarea { min-height:100px; resize:vertical; }
         border: 1px solid #EBB318;
         background: #555;
        }
+   
+
+/* Hover */
+#titleInput:hover,
+#categorySelect:hover {
+    border-color: #EBB31B;   /* NTC theme */
+}
+
+/* Focus */
+#titleInput:focus,
+#categorySelect:focus {
+    border-color: #EBB31B;
+    box-shadow: 0 0 0 0.15rem rgba(235, 179, 24, 0.25);
+   
+}
+
+     
+
+     
 /* buttons */
 .modal-actions { display:flex; gap:10px; margin-top:12px; }
 .modal-actions .btn { flex:1; }

@@ -1,0 +1,39 @@
+<!-- templates/employees/employee_list.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Employee List{% endblock %}
+{% block extra_css%}
+<link rel="stylesheet" href="{% static 'css/employeelist.css' %}">
+{%endblock%}
+{% block content %}
+<div class="employee-heading">Employees List</div>
+
+<div class="row g-3">
+
+    {% for emp in employees %}
+    <div class="col-lg-3 col-md-4 col-sm-6">
+        <a href="{% url 'employee_profile' emp.id %}" class="text-decoration-none text-dark">
+            
+            <div class="card shadow-sm h-100 employee-card">
+
+                <div class="card-body">
+    <div class="card-title fw-bold"> {{ emp.name }}</div>
+      {% if emp.profile_image %}
+        <img src="{{ emp.profile_image.url }}" class="profile-pic-employee">
+      {% else %}
+        <div class="profile-pic-employee d-flex justify-content-center align-items-center" style="background:#6c757d;color:#fff;font-size:20px;"><i class="fa-solid fa-user fa-lg"></i></div>
+      {% endif %}
+      
+
+                    <p class="mb-1">Department: {{ emp.department }}</p>
+                    <p class="mb-1">Position: {{ emp.position }}</p>
+                    <p class="mb-0">Office: {{ emp.office }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <p>No employees found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -55,6 +55,7 @@ setInterval(updateTimes, 1000);
     noArticlesMsg.style.margin = '20px 0';
     noArticlesMsg.textContent = 'No articles published yet.';
     document.querySelector('.articles-container').appendChild(noArticlesMsg);
+    updateNoArticlesMessage(); 
 
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -73,8 +74,28 @@ setInterval(updateTimes, 1000);
             btn.classList.add('active');
         });
     });
+  
+    function updateNoArticlesMessage() {
+    const visibleArticles = document.querySelectorAll('.article-card');
+    noArticlesMsg.style.display = visibleArticles.length === 0 ? 'block' : 'none';
+}
 
-    
+window.updateArticleCount = function (change = 0) {
+    const countElem = document.getElementById('article-count');
+    if (!countElem) return;
+
+    let count = parseInt(countElem.textContent) || 0;
+    count += change;
+
+    if (count <= 0) {
+        countElem.style.display = 'none';
+        countElem.textContent = '';
+    } else {
+        countElem.textContent = count;
+        countElem.style.display = 'inline';
+    }
+};
+
 
     // See more logic
     document.querySelectorAll('.article-preview').forEach(preview => {
@@ -86,6 +107,44 @@ setInterval(updateTimes, 1000);
         textDiv.classList.remove("measure");
         if (fullHeight > lineHeight + 2) btn.style.display = "block";
     });
+    
+let selectedArticleId = null;
+
+document.querySelectorAll('.delete-article-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedArticleId = btn.dataset.articleId;
+        document.getElementById('deleteConfirmOverlay').classList.remove('hidden');
+    });
+});
+
+document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+    document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+    selectedArticleId = null;
+});
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+    if (!selectedArticleId) return;
+
+    fetch(`/articles/delete/${selectedArticleId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelector(
+                `.article-card[data-article-id="${selectedArticleId}"]`
+            ).remove();
+            updateNoArticlesMessage(); 
+            updateArticleCount(-1);
+        }
+        document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+    });
+});
+
+
 
 });
 

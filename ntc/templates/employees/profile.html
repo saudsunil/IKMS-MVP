@@ -26,19 +26,22 @@
 
      
     </div>
-    <div class="profile-edit-button">
      {% if request.user == employee.user %}
+    <div class="profile-edit-button">
+   
         <a href="{% url 'edit_profile' %}" >
          <i class="fa-solid fa-pen-to-square"></i> Edit Profile
         </a>
-      {% endif %}
+    
       </diV>
+        {% endif %}
 
 </div>
 
 
  <!-- Write Article Box -->
 {% if request.user.is_authenticated %}
+ {% if request.user == employee.user %}
 <div class="write-article-box" id="openWriteArticle">
     {% if employee.profile_image %}
         <img src="{{ employee.profile_image.url }}" class="write-avatar">
@@ -54,6 +57,7 @@
 </div>
 
 {% endif %}
+{% endif %}
 
 
 <hr>
@@ -61,11 +65,29 @@
 
       <!-- Articles -->
       <div >
-        <h5 class="mb-3" style="text-align: center;">Your Articles</h5>
+        <h5 class="mb-3 text-center"
+    id="profile-article-title"
+    data-owner="{% if request.user == employee.user %}self{% else %}other{% endif %}"
+    data-username="{{ employee.name }}">
+
+    <span id="article-title-text">
+        {% if request.user == employee.user %}
+            Your Articles
+        {% else %}
+            {{ employee.name }} Articles
+        {% endif %}
+    </span>
+
+    <span id="article-count"
+          {% if article_count == 0 %}style="display:none"{% endif %}>{{ article_count }}</span>
+</h5>
+
+
+
         <div class="filter-buttons">
     <button class="filter-btn active" data-type="All">All</button>
     <button class="filter-btn" data-type="General">General</button>
-    <button class="filter-btn" data-type="Samrika">Smarika</button>
+    <button class="filter-btn" data-type="Smarika">Smarika</button>
     <button class="filter-btn" data-type="Employee Experience">Employee Experience</button>
 </div>
         {% if articles %}
@@ -78,7 +100,7 @@
         </div>
         {% else %}
         <br>
-          <p class="text-muted">No articles posted yet.</p>
+          <p class="text-muted text-center" >No articles posted yet.</p>
         {% endif %}
       </div>
 
@@ -97,61 +119,3 @@
 
 {% endblock %}
 
-
-{% comment %} {% extends "base.html" %}
-{% block title %}Profile | {{ employee.name }}{% endblock %}
-
-{% block content %}
-<div class="row">
-  <!-- Profile Info -->
-  <div class="col-md-4">
-    <div class="card mb-3">
-      <div class="card-body text-center">
-        {% if employee.profile_image %}
-          <img src="{{ employee.profile_image.url }}" class="rounded-circle mb-2" width="120">
-        {% else %}
-          <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto"
-               style="width:120px;height:120px;font-size:48px;">👤</div>
-        {% endif %}
-
-        <h5 class="mt-2">{{ employee.name }}</h5>
-        <p class="text-muted mb-1">{{ employee.position }}</p>
-        <p class="small">{{ employee.department }} | {{ employee.office }}</p>
-
-        {% if request.user == employee.user %}
-          <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary w-100">
-            Edit Profile
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-  <!-- Articles -->
-
-  <div class="col-md-8">
-    <h5 class="mb-3">Articles by {{ employee.name }}</h5>
-
-    {% if articles %}
-      {% for article in articles %}
-        <div class="feed-card">
-          <h6>{{ article.title }}</h6>
-          <small class="text-muted">
-            {{ article.created_at|date:"M d, Y" }} • {{ article.status }}
-          </small>
-
-          <p class="mt-2">{{ article.content|truncatewords:30 }}</p>
-
-          {% if request.user == employee.user %}
-            <a href="{% url 'edit_article' article.id %}" class="btn btn-sm btn-outline-secondary">
-              Edit
-            </a>
-          {% endif %}
-        </div>
-      {% endfor %}
-    {% else %}
-      <p class="text-muted">No articles posted yet.</p>
-    {% endif %}
-  </div>
-
-{% endblock %} {% endcomment %}

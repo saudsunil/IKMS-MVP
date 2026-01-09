@@ -1,0 +1,51 @@
+ .employee-heading{
+     background-color: #004C97;
+     margin-left: -1.5rem;
+     margin-right: -1.5rem;
+     margin-top: -1.5rem; 
+     text-align:center;
+     color:#fff;
+     padding:25px;
+     font-size:1.3rem;
+     font-weight: 500;
+     margin-bottom:30px;
+    
+    
+}
+.employee-card{
+     height:150px;
+     padding:15px;
+}
+
+.employee-card:hover{
+     border:1px solid#EBB318; 
+    
+
+}
+.profile-pic-employee{
+     height:80px;
+     width:80px;
+     margin-left:38px;
+     border-radius:50%;
+   
+}
+.card-title{
+     background:#EBB318;
+     margin-left: -2rem;
+     margin-right: -2rem;
+     margin-top: -2rem; 
+     padding:10px;
+     text-align:center;
+     color:#fff;
+     border-top-left-radius:8px;
+     border-top-right-radius: 8px;
+     font-weight:500;
+}
+.card-body p{
+     font-weight:500;
+     margin-left:-0.5rem;
+     margin-top:10px;
+     text-align:center;
+     margin-bottom:-0.5rem;
+
+}
